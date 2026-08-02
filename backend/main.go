@@ -59,6 +59,8 @@ func main() {
 		api.POST("/sales/invoice", controllers.CreateInvoice)
 		api.GET("/sales/invoices", controllers.GetInvoices)
 		api.GET("/sales/invoices/:id", controllers.GetInvoiceDetails)
+		api.PUT("/sales/invoices/:id", controllers.UpdateInvoice)
+		api.DELETE("/sales/invoices/:id", controllers.DeleteInvoice)
 
 		// Reports
 		api.GET("/reports/profit", controllers.GetProfitReport)

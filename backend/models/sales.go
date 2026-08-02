@@ -9,6 +9,8 @@ type Invoice struct {
 	TotalDPP      float64       `json:"total_dpp"`
 	TotalPPN      float64       `json:"total_ppn"`
 	GrandTotal    float64       `json:"grand_total"`
+	ShippingCost  float64       `gorm:"default:0" json:"shipping_cost"`
+	Discount      float64       `gorm:"default:0" json:"discount"`
 	Status        string        `gorm:"default:'UNPAID'" json:"status"`
 	Items         []InvoiceItem `gorm:"foreignKey:InvoiceID" json:"items"`
 	Partner       Partner       `gorm:"foreignKey:PartnerID" json:"partner"`

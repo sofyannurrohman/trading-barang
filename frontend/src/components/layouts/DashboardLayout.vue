@@ -42,9 +42,7 @@
               <span>{{ openMenus.inventory ? '▼' : '▶' }}</span>
             </button>
             <div v-show="openMenus.inventory" class="pl-8 space-y-1 mt-1">
-              <router-link to="/dashboard/inventory/inbound" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md hover:bg-slate-800 hover:text-white" active-class="bg-slate-800 text-white">Barang Masuk</router-link>
-              <router-link to="/dashboard/inventory/adjustments" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md hover:bg-slate-800 hover:text-white" active-class="bg-slate-800 text-white">Penyesuaian</router-link>
-              <router-link to="/dashboard/inventory/stock-card" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md hover:bg-slate-800 hover:text-white" active-class="bg-slate-800 text-white">Kartu Stok</router-link>
+              <router-link to="/dashboard/inventory/management" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md hover:bg-slate-800 hover:text-white" active-class="bg-slate-800 text-white">Manajemen Stok</router-link>
             </div>
           </div>
 
@@ -58,6 +56,7 @@
               <span>{{ openMenus.sales ? '▼' : '▶' }}</span>
             </button>
             <div v-show="openMenus.sales" class="pl-8 space-y-1 mt-1">
+              <router-link to="/dashboard/sales/management" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md hover:bg-slate-800 hover:text-white" active-class="bg-slate-800 text-white">Manajemen Penjualan</router-link>
               <router-link to="/dashboard/sales/create" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md hover:bg-slate-800 hover:text-white" active-class="bg-slate-800 text-white">Buat Faktur</router-link>
               <router-link to="/dashboard/sales/list" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md hover:bg-slate-800 hover:text-white" active-class="bg-slate-800 text-white">Daftar Faktur</router-link>
             </div>

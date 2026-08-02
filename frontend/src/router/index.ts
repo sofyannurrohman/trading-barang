@@ -24,11 +24,10 @@ const routes = [
       { path: 'master-data/partners', name: 'Partners', component: () => import('../views/dashboard/master/Partners.vue') },
       
       // Gudang & Inventori
-      { path: 'inventory/inbound', name: 'Inbound', component: () => import('../views/dashboard/inventory/Inbound.vue') },
-      { path: 'inventory/adjustments', name: 'Adjustments', component: () => import('../views/dashboard/inventory/Adjustments.vue') },
-      { path: 'inventory/stock-card', name: 'StockCard', component: () => import('../views/dashboard/inventory/StockCard.vue') },
+      { path: 'inventory/management', name: 'StockManagement', component: () => import('../views/dashboard/inventory/StockManagement.vue') },
       
       // Penjualan & Faktur
+      { path: 'sales/management', name: 'SalesManagement', component: () => import('../views/dashboard/sales/SalesManagement.vue') },
       { path: 'sales/create', name: 'CreateInvoice', component: () => import('../views/dashboard/sales/CreateInvoice.vue') },
       { path: 'sales/list', name: 'InvoiceList', component: () => import('../views/dashboard/sales/InvoiceList.vue') },
       
