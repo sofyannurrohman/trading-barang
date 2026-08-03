@@ -62,6 +62,7 @@ import { useAuthStore } from '../stores/auth'
 import api from '../plugins/axios'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
+import { toast } from 'vue-sonner'
 
 const username = ref('')
 const password = ref('')
@@ -81,6 +82,7 @@ const handleLogin = async () => {
     })
     
     authStore.login(response.data.token, response.data.user)
+    toast.success('Login berhasil')
     router.push('/dashboard')
   } catch (err: any) {
     error.value = err.response?.data?.error || 'Login failed'

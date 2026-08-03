@@ -1,6 +1,7 @@
 import axios from 'axios'
 import { useAuthStore } from '../stores/auth'
 import { toast } from 'vue-sonner'
+import router from '../router'
 
 const api = axios.create({
   baseURL: 'http://localhost:8080',
@@ -38,7 +39,9 @@ api.interceptors.response.use(
     if (error.response?.status === 401) {
       const authStore = useAuthStore()
       authStore.logout()
-      window.location.href = '/login'
+      if (router.currentRoute.value.path !== '/login') {
+        router.push('/login')
+      }
     }
     return Promise.reject(error)
   }

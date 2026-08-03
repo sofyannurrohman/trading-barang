@@ -26,6 +26,7 @@ services:
       - DB_PASSWORD=password
       - DB_NAME=erp_pkp
       - DB_PORT=5432
+      - AUTO_SEED=true
     depends_on:
       - db
     restart: unless-stopped
