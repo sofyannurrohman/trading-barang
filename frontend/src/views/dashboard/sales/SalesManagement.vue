@@ -618,6 +618,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
 import api from '@/plugins/axios'
+import { toast } from 'vue-sonner'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface Partner { ID: number; name: string; npwp: string; nik: string }
@@ -868,11 +869,15 @@ const submitCreate = async () => {
         quantity: i.quantity,
         unit_price: i.unit_price,
       })),
-    })
+    }, { skipToast: true } as any)
+    // Tutup modal dulu, baru toast agar tidak terhalangi backdrop
     isCreateModalOpen.value = false
+    toast.success('Transaksi penjualan berhasil dibuat')
     await fetchAll()
   } catch (err: any) {
-    createError.value = err.response?.data?.error ?? 'Gagal membuat transaksi.'
+    const errMsg = err.response?.data?.error ?? 'Gagal membuat transaksi.'
+    createError.value = errMsg
+    toast.error(errMsg)
   } finally {
     createLoading.value = false
   }
@@ -892,16 +897,19 @@ const openEditModal = (invoice: Invoice) => {
 const submitEdit = async () => {
   if (!editingInvoice.value) return
   editLoading.value = true
+  const invoiceNumber = editingInvoice.value.invoice_number
   try {
     await api.put(`/api/sales/invoices/${editingInvoice.value.ID}`, {
       status: editForm.value.status,
       shipping_cost: Number(editForm.value.shipping_cost) || 0,
       discount: Number(editForm.value.discount) || 0,
-    })
+    }, { skipToast: true } as any)
+    // Tutup modal dulu, baru toast agar tidak terhalangi backdrop
     isEditModalOpen.value = false
+    toast.success(`Invoice ${invoiceNumber} berhasil diperbarui`)
     await fetchAll()
   } catch (err: any) {
-    alert(err.response?.data?.error ?? 'Gagal memperbarui invoice.')
+    toast.error(err.response?.data?.error ?? 'Gagal memperbarui invoice.')
   } finally {
     editLoading.value = false
   }
@@ -918,12 +926,17 @@ const submitDelete = async () => {
   if (!deletingInvoice.value) return
   deleteLoading.value = true
   deleteError.value = ''
+  const invoiceNumber = deletingInvoice.value.invoice_number
   try {
-    await api.delete(`/api/sales/invoices/${deletingInvoice.value.ID}`)
+    await api.delete(`/api/sales/invoices/${deletingInvoice.value.ID}`, { skipToast: true } as any)
+    // Tutup modal dulu, baru toast agar tidak terhalangi backdrop
     isDeleteModalOpen.value = false
+    toast.success(`Invoice ${invoiceNumber} berhasil dihapus`)
     await fetchAll()
   } catch (err: any) {
-    deleteError.value = err.response?.data?.error ?? 'Gagal menghapus invoice.'
+    const errMsg = err.response?.data?.error ?? 'Gagal menghapus invoice.'
+    deleteError.value = errMsg
+    toast.error(errMsg)
   } finally {
     deleteLoading.value = false
   }

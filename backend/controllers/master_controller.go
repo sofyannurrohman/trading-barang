@@ -3,9 +3,13 @@ package controllers
 import (
 	"backend/db"
 	"backend/models"
+	"fmt"
+	"io"
 	"net/http"
+	"os"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 // --- Product Controllers ---
@@ -56,6 +60,95 @@ func DeleteProduct(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "Product deleted successfully"})
+}
+
+func UploadProductImage(c *gin.Context) {
+	id := c.Param("id")
+
+	// Cari produk
+	var product models.Product
+	if err := db.DB.First(&product, id).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Produk tidak ditemukan"})
+		return
+	}
+
+	// Ambil file dari form
+	file, header, err := c.Request.FormFile("image")
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "File tidak ditemukan di request"})
+		return
+	}
+	defer file.Close()
+
+	// Validasi ukuran maks 2MB
+	if header.Size > 2*1024*1024 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Ukuran file melebihi 2MB"})
+		return
+	}
+
+	// Validasi MIME type dari header file
+	buf := make([]byte, 512)
+	if _, err := file.Read(buf); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal membaca file"})
+		return
+	}
+	mimeType := http.DetectContentType(buf)
+	allowed := map[string]string{
+		"image/jpeg": ".jpg",
+		"image/png":  ".png",
+		"image/webp": ".webp",
+	}
+	ext, ok := allowed[mimeType]
+	if !ok {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Format file tidak didukung. Gunakan JPG, PNG, atau WebP"})
+		return
+	}
+
+	// Buat direktori uploads jika belum ada
+	uploadDir := "./uploads/products"
+	if err := os.MkdirAll(uploadDir, 0755); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal membuat direktori upload"})
+		return
+	}
+
+	// Generate nama file unik
+	shortUUID := uuid.New().String()[:8]
+	filename := fmt.Sprintf("%d_%s%s", product.ID, shortUUID, ext)
+	filePath := fmt.Sprintf("%s/%s", uploadDir, filename)
+
+	// Hapus foto lama jika ada
+	if product.ImageURL != "" {
+		oldPath := "." + product.ImageURL
+		os.Remove(oldPath)
+	}
+
+	// Seek kembali ke awal karena sudah dibaca 512 byte untuk MIME detection
+	if _, err := file.Seek(0, io.SeekStart); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal memproses file"})
+		return
+	}
+
+	// Tulis file ke disk
+	out, err := os.Create(filePath)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal menyimpan file"})
+		return
+	}
+	defer out.Close()
+
+	if _, err := io.Copy(out, file); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal menulis file"})
+		return
+	}
+
+	// Simpan URL ke database
+	imageURL := "/uploads/products/" + filename
+	if err := db.DB.Model(&product).Update("image_url", imageURL).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal menyimpan data foto"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"image_url": imageURL, "message": "Foto produk berhasil diperbarui"})
 }
 
 // --- Partner Controllers ---

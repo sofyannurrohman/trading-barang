@@ -22,6 +22,7 @@ type CreateInvoiceInput struct {
 	Items        []InvoiceItemInput `json:"items" binding:"required,min=1"`
 	ShippingCost float64            `json:"shipping_cost"`
 	Discount     float64            `json:"discount"`
+	IsTaxable    *bool              `json:"is_taxable"` // Pointer to distinguish false from missing
 }
 
 func CreateInvoice(c *gin.Context) {
@@ -38,11 +39,18 @@ func CreateInvoice(c *gin.Context) {
 
 	var totalDPP float64 = 0
 
+	// Check if tax should be applied (default to true if missing)
+	isTaxable := true
+	if input.IsTaxable != nil {
+		isTaxable = *input.IsTaxable
+	}
+
 	invoice := models.Invoice{
 		InvoiceNumber: invoiceNumber,
 		PartnerID:     input.PartnerID,
 		ShippingCost:  input.ShippingCost,
 		Discount:      input.Discount,
+		IsTaxable:     isTaxable,
 		Status:        "UNPAID",
 	}
 
@@ -110,10 +118,13 @@ func CreateInvoice(c *gin.Context) {
 	}
 
 	// Fetch Company Profile to get PPN Rate (Fallback to 11% if not set)
+	ppnRate := 0.0
 	var profile models.CompanyProfile
-	ppnRate := 11.0
-	if err := tx.First(&profile).Error; err == nil && profile.PPNRate > 0 {
-		ppnRate = profile.PPNRate
+	if isTaxable {
+		ppnRate = 11.0
+		if err := tx.First(&profile).Error; err == nil && profile.PPNRate > 0 {
+			ppnRate = profile.PPNRate
+		}
 	}
 
 	totalPPN := totalDPP * (ppnRate / 100.0)

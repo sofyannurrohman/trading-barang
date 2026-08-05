@@ -12,6 +12,7 @@ type Invoice struct {
 	ShippingCost  float64       `gorm:"default:0" json:"shipping_cost"`
 	Discount      float64       `gorm:"default:0" json:"discount"`
 	Status        string        `gorm:"default:'UNPAID'" json:"status"`
+	IsTaxable     bool          `gorm:"default:true" json:"is_taxable"`
 	Items         []InvoiceItem `gorm:"foreignKey:InvoiceID" json:"items"`
 	Partner       Partner       `gorm:"foreignKey:PartnerID" json:"partner"`
 }

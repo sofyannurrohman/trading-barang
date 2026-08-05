@@ -356,6 +356,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import api from '@/plugins/axios'
+import { toast } from 'vue-sonner'
 
 // ─── Interfaces ──────────────────────────────────────────────────────────────
 interface Product {
@@ -473,17 +474,23 @@ const submitInbound = async () => {
   if (!selectedProduct.value) return
   actionLoading.value = true
   actionError.value = ''
+  const productName = selectedProduct.value.name
+  const qty = inboundForm.value.quantity
   try {
     await api.post('/api/inventory/inbound', {
       product_id: selectedProduct.value.ID,
-      quantity: inboundForm.value.quantity,
+      quantity: qty,
       unit_price: inboundForm.value.unit_price,
       reference: inboundForm.value.reference
-    })
+    }, { skipToast: true } as any)
+    // Tutup modal dulu, baru toast agar tidak terhalangi backdrop
     closeModal()
+    toast.success(`Inbound berhasil — ${qty} unit ${productName} ditambahkan ke stok`)
     await fetchProducts()
   } catch (error: any) {
-    actionError.value = error.response?.data?.error || 'Gagal menyimpan Inbound.'
+    const errMsg = error.response?.data?.error || 'Gagal menyimpan Inbound.'
+    actionError.value = errMsg
+    toast.error(errMsg)
   } finally {
     actionLoading.value = false
   }
@@ -500,16 +507,23 @@ const submitOpname = async () => {
   if (!selectedProduct.value || opnameDiff.value === 0) return
   actionLoading.value = true
   actionError.value = ''
+  const productName = selectedProduct.value.name
+  const diffValue = opnameDiff.value
   try {
     await api.post('/api/inventory/adjustment', {
       product_id: selectedProduct.value.ID,
-      quantity: opnameDiff.value, // Kirim selisih, bukan physical_stock
+      quantity: diffValue, // Kirim selisih, bukan physical_stock
       reference: opnameForm.value.reference
-    })
+    }, { skipToast: true } as any)
+    // Tutup modal dulu, baru toast agar tidak terhalangi backdrop
     closeModal()
+    const diffLabel = diffValue > 0 ? `+${diffValue}` : `${diffValue}`
+    toast.success(`Opname berhasil — Stok ${productName} disesuaikan (${diffLabel} unit)`)
     await fetchProducts()
   } catch (error: any) {
-    actionError.value = error.response?.data?.error || 'Gagal menyimpan Opname.'
+    const errMsg = error.response?.data?.error || 'Gagal menyimpan Opname.'
+    actionError.value = errMsg
+    toast.error(errMsg)
   } finally {
     actionLoading.value = false
   }

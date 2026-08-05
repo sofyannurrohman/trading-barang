@@ -123,6 +123,7 @@
         <table class="min-w-full divide-y divide-slate-200">
           <thead class="bg-slate-50">
             <tr>
+              <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Foto</th>
               <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">SKU</th>
               <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Nama Produk</th>
               <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Kategori</th>
@@ -134,7 +135,7 @@
           </thead>
           <tbody class="bg-white divide-y divide-slate-100">
             <tr v-if="loading">
-              <td colspan="7" class="px-4 py-10 text-center">
+              <td colspan="8" class="px-4 py-10 text-center">
                 <div class="flex flex-col items-center gap-2 text-slate-400">
                   <svg class="animate-spin w-6 h-6" fill="none" viewBox="0 0 24 24">
                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -145,7 +146,7 @@
               </td>
             </tr>
             <tr v-else-if="paginatedProducts.length === 0">
-              <td colspan="7" class="px-4 py-10 text-center text-slate-400 text-sm">
+              <td colspan="8" class="px-4 py-10 text-center text-slate-400 text-sm">
                 Tidak ada data produk yang ditemukan.
               </td>
             </tr>
@@ -155,6 +156,18 @@
               :key="product.ID"
               class="hover:bg-slate-50 transition-colors"
             >
+              <!-- Foto Thumbnail -->
+              <td class="px-4 py-3 whitespace-nowrap">
+                <div class="w-10 h-10 rounded-lg overflow-hidden bg-slate-100 border border-slate-200 flex items-center justify-center flex-shrink-0">
+                  <img
+                    v-if="product.image_url"
+                    :src="`${apiBase}${product.image_url}`"
+                    class="w-full h-full object-cover"
+                    :alt="product.name"
+                  />
+                  <ImageOff v-else class="w-5 h-5 text-slate-400" />
+                </div>
+              </td>
               <td class="px-4 py-3 whitespace-nowrap text-sm font-mono text-slate-600">{{ product.sku }}</td>
               <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-slate-900">{{ product.name }}</td>
               <td class="px-4 py-3 whitespace-nowrap text-sm">
@@ -262,9 +275,88 @@
             </div>
           </div>
 
-          <div class="px-6 py-5 space-y-4 max-h-[70vh] overflow-y-auto">
+          <div class="px-6 py-5 space-y-4 max-h-[75vh] overflow-y-auto">
             <form @submit.prevent="submitForm">
               <div class="space-y-4">
+                <!-- Upload Foto Produk -->
+                <div>
+                  <label class="block text-sm font-medium text-slate-700 mb-1.5">Foto Produk</label>
+
+                  <!-- Preview gambar (jika ada file baru atau foto lama) -->
+                  <div
+                    v-if="previewUrl || form.image_url"
+                    class="relative group w-full h-40 rounded-xl overflow-hidden border border-slate-200 mb-2 cursor-pointer"
+                    @click="triggerFileInput"
+                  >
+                    <img
+                      :src="previewUrl || `${apiBase}${form.image_url}`"
+                      class="w-full h-full object-cover"
+                      alt="Preview foto produk"
+                    />
+                    <!-- Overlay hover -->
+                    <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2">
+                      <Camera class="w-7 h-7 text-white" />
+                      <p class="text-white text-sm font-medium">Klik untuk ganti foto</p>
+                    </div>
+                    <!-- Tombol hapus foto -->
+                    <button
+                      type="button"
+                      @click.stop="clearImage"
+                      class="absolute top-2 right-2 p-1.5 bg-red-600 hover:bg-red-700 text-white rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-all"
+                      title="Hapus foto"
+                    >
+                      <X class="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+
+                  <!-- Drag & Drop Zone (jika belum ada foto) -->
+                  <div
+                    v-else
+                    @dragover.prevent="isDragging = true"
+                    @dragleave.prevent="isDragging = false"
+                    @drop.prevent="onDrop"
+                    @click="triggerFileInput"
+                    class="border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-all duration-200 select-none"
+                    :class="isDragging
+                      ? 'border-indigo-400 bg-indigo-50 scale-[1.01]'
+                      : 'border-slate-300 hover:border-indigo-400 hover:bg-slate-50'"
+                  >
+                    <div class="flex flex-col items-center gap-2">
+                      <div
+                        class="w-12 h-12 rounded-xl flex items-center justify-center transition-colors"
+                        :class="isDragging ? 'bg-indigo-100' : 'bg-slate-100'"
+                      >
+                        <ImagePlus class="w-6 h-6" :class="isDragging ? 'text-indigo-500' : 'text-slate-400'" />
+                      </div>
+                      <div>
+                        <p class="text-sm text-slate-600">
+                          Drag & drop foto, atau
+                          <span class="text-indigo-600 font-medium">klik untuk pilih</span>
+                        </p>
+                        <p class="text-xs text-slate-400 mt-0.5">JPG, PNG, WebP — Maksimal 2MB</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Hidden file input -->
+                  <input
+                    ref="fileInputRef"
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    class="hidden"
+                    @change="onFileInputChange"
+                  />
+
+                  <!-- Indikator file terpilih -->
+                  <p v-if="selectedFile" class="mt-1.5 text-xs text-indigo-600 flex items-center gap-1">
+                    <Check class="w-3.5 h-3.5" />
+                    {{ selectedFile.name }} ({{ (selectedFile.size / 1024).toFixed(0) }} KB) — akan diupload saat simpan
+                  </p>
+                </div>
+
+                <!-- Divider -->
+                <div class="border-t border-slate-100 pt-1"></div>
+
                 <div>
                   <label class="block text-sm font-medium text-slate-700 mb-1">SKU <span class="text-red-500">*</span></label>
                   <input
@@ -338,8 +430,12 @@
                 <button
                   type="submit"
                   :disabled="submitLoading"
-                  class="px-5 py-2 text-sm font-semibold bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 transition-colors"
+                  class="px-5 py-2 text-sm font-semibold bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 transition-colors flex items-center gap-2"
                 >
+                  <svg v-if="submitLoading" class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                  </svg>
                   {{ submitLoading ? 'Menyimpan...' : 'Simpan Produk' }}
                 </button>
               </div>
@@ -442,6 +538,11 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
 import api from '@/plugins/axios'
+import { toast } from 'vue-sonner'
+import { ImagePlus, ImageOff, Camera, X, Check } from '@lucide/vue'
+
+// ─── Config ───────────────────────────────────────────────────────────────────
+const apiBase = 'http://localhost:8080'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface Product {
@@ -452,6 +553,7 @@ interface Product {
   standard_price: number
   average_hpp: number
   current_stock: number
+  image_url?: string
 }
 
 // ─── State ────────────────────────────────────────────────────────────────────
@@ -478,8 +580,15 @@ const form = ref<Product>({
   category: '',
   standard_price: 0,
   average_hpp: 0,
-  current_stock: 0
+  current_stock: 0,
+  image_url: ''
 })
+
+// Upload foto
+const selectedFile = ref<File | null>(null)
+const previewUrl = ref<string>('')
+const isDragging = ref(false)
+const fileInputRef = ref<HTMLInputElement | null>(null)
 
 // Delete Modal
 const isDeleteModalOpen = ref(false)
@@ -559,6 +668,51 @@ const resetFilters = () => {
   currentPage.value = 1
 }
 
+// ─── Upload Foto Helpers ──────────────────────────────────────────────────────
+const triggerFileInput = () => {
+  fileInputRef.value?.click()
+}
+
+const onFileSelected = (file: File) => {
+  if (file.size > 2 * 1024 * 1024) {
+    formError.value = 'Ukuran file melebihi 2MB. Pilih gambar yang lebih kecil.'
+    return
+  }
+  const allowed = ['image/jpeg', 'image/png', 'image/webp']
+  if (!allowed.includes(file.type)) {
+    formError.value = 'Format file tidak didukung. Gunakan JPG, PNG, atau WebP.'
+    return
+  }
+  // Revoke URL sebelumnya untuk cegah memory leak
+  if (previewUrl.value) {
+    URL.revokeObjectURL(previewUrl.value)
+  }
+  selectedFile.value = file
+  previewUrl.value = URL.createObjectURL(file)
+  formError.value = ''
+}
+
+const onFileInputChange = (e: Event) => {
+  const file = (e.target as HTMLInputElement).files?.[0]
+  if (file) onFileSelected(file)
+}
+
+const onDrop = (e: DragEvent) => {
+  isDragging.value = false
+  const file = e.dataTransfer?.files[0]
+  if (file) onFileSelected(file)
+}
+
+const clearImage = () => {
+  if (previewUrl.value) {
+    URL.revokeObjectURL(previewUrl.value)
+  }
+  selectedFile.value = null
+  previewUrl.value = ''
+  form.value.image_url = ''
+  if (fileInputRef.value) fileInputRef.value.value = ''
+}
+
 // ─── Fetch Data ───────────────────────────────────────────────────────────────
 const fetchProducts = async () => {
   loading.value = true
@@ -576,13 +730,16 @@ const fetchProducts = async () => {
 const openCreateModal = () => {
   isEditing.value = false
   formError.value = ''
+  selectedFile.value = null
+  previewUrl.value = ''
   form.value = {
     sku: '',
     name: '',
     category: '',
     standard_price: 0,
     average_hpp: 0,
-    current_stock: 0
+    current_stock: 0,
+    image_url: ''
   }
   isModalOpen.value = true
 }
@@ -590,11 +747,20 @@ const openCreateModal = () => {
 const openEditModal = (product: Product) => {
   isEditing.value = true
   formError.value = ''
+  selectedFile.value = null
+  previewUrl.value = ''
   form.value = { ...product }
   isModalOpen.value = true
 }
 
 const closeModal = () => {
+  // Revoke blob URL untuk cegah memory leak
+  if (previewUrl.value) {
+    URL.revokeObjectURL(previewUrl.value)
+    previewUrl.value = ''
+  }
+  selectedFile.value = null
+  if (fileInputRef.value) fileInputRef.value.value = ''
   isModalOpen.value = false
 }
 
@@ -602,26 +768,53 @@ const submitForm = async () => {
   submitLoading.value = true
   formError.value = ''
   try {
+    let productId: number
+
+    const wasEditing = isEditing.value
     if (isEditing.value && form.value.ID) {
       await api.put(`/api/products/${form.value.ID}`, {
         sku: form.value.sku,
         name: form.value.name,
         category: form.value.category,
         standard_price: Number(form.value.standard_price) || 0
-      })
+      }, { skipToast: true } as any)
+      productId = form.value.ID
     } else {
-      await api.post('/api/products', {
+      const res = await api.post('/api/products', {
         sku: form.value.sku,
         name: form.value.name,
         category: form.value.category,
         standard_price: Number(form.value.standard_price) || 0
-      })
+      }, { skipToast: true } as any)
+      productId = res.data.ID
     }
+
+    // Upload foto jika ada file yang dipilih
+    if (selectedFile.value) {
+      const formData = new FormData()
+      formData.append('image', selectedFile.value)
+      await api.post(`/api/products/${productId}/image`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+        skipToast: true
+      } as any)
+    }
+
+    // Tutup modal terlebih dahulu
     isModalOpen.value = false
+    // Bersihkan state upload
+    if (previewUrl.value) URL.revokeObjectURL(previewUrl.value)
+    previewUrl.value = ''
+    selectedFile.value = null
+
+    // Tampilkan toast setelah modal tertutup agar tidak terhalangi backdrop
+    toast.success(wasEditing ? 'Produk berhasil diperbarui' : 'Produk berhasil ditambahkan')
+
     await fetchProducts()
   } catch (error: any) {
     console.error('Failed to save product', error)
-    formError.value = error.response?.data?.error ?? 'Gagal menyimpan produk. Pastikan SKU unik.'
+    const errMsg = error.response?.data?.error ?? 'Gagal menyimpan produk. Pastikan SKU unik.'
+    formError.value = errMsg
+    toast.error(errMsg)
   } finally {
     submitLoading.value = false
   }
@@ -639,12 +832,17 @@ const submitDelete = async () => {
   deleteLoading.value = true
   deleteError.value = ''
   try {
-    await api.delete(`/api/products/${deletingProduct.value.ID}`)
+    await api.delete(`/api/products/${deletingProduct.value.ID}`, { skipToast: true } as any)
+    // Tutup modal terlebih dahulu
     isDeleteModalOpen.value = false
+    // Tampilkan toast setelah modal tertutup agar tidak terhalangi backdrop
+    toast.success('Produk berhasil dihapus')
     await fetchProducts()
   } catch (error: any) {
     console.error('Failed to delete product', error)
-    deleteError.value = error.response?.data?.error ?? 'Gagal menghapus produk.'
+    const errMsg = error.response?.data?.error ?? 'Gagal menghapus produk.'
+    deleteError.value = errMsg
+    toast.error(errMsg)
   } finally {
     deleteLoading.value = false
   }

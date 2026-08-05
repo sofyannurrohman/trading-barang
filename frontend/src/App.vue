@@ -4,5 +4,9 @@ import { Toaster } from 'vue-sonner'
 
 <template>
   <router-view />
-  <Toaster position="top-right" richColors />
+  <Toaster
+    position="top-right"
+    richColors
+    :toastOptions="{ style: { zIndex: '99999' } }"
+  />
 </template>

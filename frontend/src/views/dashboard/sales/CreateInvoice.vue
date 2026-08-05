@@ -85,6 +85,10 @@
           <h3 class="text-lg font-medium mb-4">Ringkasan Faktur</h3>
           
           <div class="space-y-3 text-sm text-slate-300">
+            <div class="flex justify-between items-center mb-2 pb-2 border-b border-slate-700">
+              <span class="text-sm">Kenakan PPN</span>
+              <input type="checkbox" v-model="form.is_taxable" class="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 bg-slate-800" />
+            </div>
             <div class="flex justify-between">
               <span>Dasar Pengenaan Pajak (DPP)</span>
               <span class="text-white font-medium">Rp {{ formatNumber(totalDPP) }}</span>
@@ -117,6 +121,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '@/plugins/axios'
+import { toast } from 'vue-sonner'
 
 const router = useRouter()
 
@@ -132,7 +137,8 @@ const loading = ref(false)
 const errorMsg = ref('')
 
 const form = ref({
-  partner_id: ''
+  partner_id: '',
+  is_taxable: true
 })
 
 const itemForm = ref({
@@ -187,7 +193,7 @@ const formatNumber = (num: number) => num.toLocaleString('id-ID')
 const totalDPP = computed(() => {
   return cart.value.reduce((sum, item) => sum + (item.quantity * item.unit_price), 0)
 })
-const totalPPN = computed(() => totalDPP.value * 0.11) // Using 11% fixed for UI simplicity right now, backend recalculates
+const totalPPN = computed(() => form.value.is_taxable ? totalDPP.value * 0.11 : 0) // Using 11% fixed for UI simplicity right now, backend recalculates
 const grandTotal = computed(() => totalDPP.value + totalPPN.value)
 
 const submitInvoice = async () => {
@@ -196,18 +202,22 @@ const submitInvoice = async () => {
   try {
     await api.post('/api/sales/invoice', {
       partner_id: Number(form.value.partner_id),
+      is_taxable: form.value.is_taxable,
       items: cart.value.map(i => ({
         product_id: i.product_id,
         quantity: i.quantity,
         unit_price: i.unit_price
       }))
-    })
+    }, { skipToast: true } as any)
     
+    toast.success('Faktur penjualan berhasil dibuat')
     // Redirect to list
     router.push('/dashboard/sales/list')
   } catch (error: any) {
     console.error(error)
-    errorMsg.value = error.response?.data?.error || 'Gagal membuat faktur.'
+    const errMsg = error.response?.data?.error || 'Gagal membuat faktur.'
+    errorMsg.value = errMsg
+    toast.error(errMsg)
   } finally {
     loading.value = false
   }

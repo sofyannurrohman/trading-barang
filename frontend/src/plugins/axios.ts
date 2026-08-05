@@ -23,6 +23,8 @@ api.interceptors.request.use(
 
 api.interceptors.response.use(
   (response) => {
+    // Skip toast jika request sudah menangani toast sendiri (skipToast flag)
+    if ((response.config as any).skipToast) return response
     const method = response.config.method?.toLowerCase()
     if (method && ['post', 'put', 'delete'].includes(method)) {
       if (!response.config.url?.includes('/login') && !response.config.url?.includes('/register')) {
@@ -34,8 +36,11 @@ api.interceptors.response.use(
   },
   (error) => {
     const msg = error.response?.data?.error || error.message || 'Terjadi kesalahan pada sistem'
-    toast.error(msg)
-    
+    // Skip toast jika request sudah menangani toast sendiri (skipToast flag)
+    if (!(error.config as any)?.skipToast) {
+      toast.error(msg)
+    }
+
     if (error.response?.status === 401) {
       const authStore = useAuthStore()
       authStore.logout()

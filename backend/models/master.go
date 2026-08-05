@@ -10,6 +10,7 @@ type Product struct {
 	StandardPrice float64 `gorm:"default:0" json:"standard_price"` // Harga Jual Standar
 	AverageHPP    float64 `gorm:"default:0" json:"average_hpp"`    // Harga Pokok Penjualan (Modal rata-rata)
 	CurrentStock  int     `gorm:"default:0" json:"current_stock"`
+	ImageURL      string  `json:"image_url"` // Path relatif, e.g. "/uploads/products/abc.jpg"
 }
 
 type Partner struct {

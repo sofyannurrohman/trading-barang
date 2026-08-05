@@ -43,6 +43,7 @@ func main() {
 		api.POST("/products", controllers.CreateProduct)
 		api.PUT("/products/:id", controllers.UpdateProduct)
 		api.DELETE("/products/:id", controllers.DeleteProduct)
+		api.POST("/products/:id/image", controllers.UploadProductImage)
 
 		// Master Data - Partners
 		api.GET("/partners", controllers.GetPartners)
@@ -69,7 +70,16 @@ func main() {
 		// Settings
 		api.GET("/settings/company", controllers.GetCompanyProfile)
 		api.PUT("/settings/company", controllers.UpdateCompanyProfile)
+
+		// Users
+		api.GET("/settings/users", controllers.GetUsers)
+		api.POST("/settings/users", controllers.CreateUser)
+		api.PUT("/settings/users/:id", controllers.UpdateUser)
+		api.DELETE("/settings/users/:id", controllers.DeleteUser)
 	}
+
+	// Serve uploaded static files
+	r.Static("/uploads", "./uploads")
 
 	r.Run(":8080")
 }
