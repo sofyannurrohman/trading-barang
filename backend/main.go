@@ -10,6 +10,11 @@ import (
 )
 
 func main() {
+	// Set Gin mode from environment (use GIN_MODE=release in production)
+	if os.Getenv("GIN_MODE") == "release" {
+		gin.SetMode(gin.ReleaseMode)
+	}
+
 	// Initialize Database
 	db.InitDB()
 
@@ -28,15 +33,16 @@ func main() {
 
 	auth := r.Group("/auth")
 	{
-		auth.POST("/register", controllers.Register)
+		// NOTE: /auth/register has been intentionally removed.
+		// User creation is managed by admins via POST /api/settings/users (requires authentication).
 		auth.POST("/login", controllers.Login)
 	}
 
 	api := r.Group("/api")
 	api.Use(middleware.AuthRequired())
 	{
-		// Requires "admin" role (you can loosen this later for other roles)
-		api.GET("/dashboard", middleware.RoleRequired("admin"), controllers.Dashboard)
+		// Dashboard stats (real data)
+		api.GET("/dashboard", controllers.Dashboard)
 
 		// Master Data - Products
 		api.GET("/products", controllers.GetProducts)
@@ -71,11 +77,11 @@ func main() {
 		api.GET("/settings/company", controllers.GetCompanyProfile)
 		api.PUT("/settings/company", controllers.UpdateCompanyProfile)
 
-		// Users
-		api.GET("/settings/users", controllers.GetUsers)
-		api.POST("/settings/users", controllers.CreateUser)
-		api.PUT("/settings/users/:id", controllers.UpdateUser)
-		api.DELETE("/settings/users/:id", controllers.DeleteUser)
+		// Users (admin only)
+		api.GET("/settings/users", middleware.RoleRequired("admin"), controllers.GetUsers)
+		api.POST("/settings/users", middleware.RoleRequired("admin"), controllers.CreateUser)
+		api.PUT("/settings/users/:id", middleware.RoleRequired("admin"), controllers.UpdateUser)
+		api.DELETE("/settings/users/:id", middleware.RoleRequired("admin"), controllers.DeleteUser)
 	}
 
 	// Serve uploaded static files

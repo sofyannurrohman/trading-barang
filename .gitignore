@@ -1,0 +1,15 @@
+# Environment files — JANGAN commit ke Git
+.env
+.env.local
+.env.*.local
+
+# Tetap izinkan template yang aman untuk di-commit
+!.env.example
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/settings.json
+.idea/

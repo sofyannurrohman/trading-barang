@@ -2,12 +2,22 @@ package utils
 
 import (
 	"errors"
+	"log"
+	"os"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 )
 
-var jwtSecret = []byte("my_super_secret_key_change_in_production") // In production, read this from .env
+var jwtSecret []byte
+
+func init() {
+	secret := os.Getenv("JWT_SECRET")
+	if secret == "" {
+		log.Fatal("FATAL: JWT_SECRET environment variable is not set. Application cannot start.")
+	}
+	jwtSecret = []byte(secret)
+}
 
 type Claims struct {
 	UserID uint   `json:"user_id"`

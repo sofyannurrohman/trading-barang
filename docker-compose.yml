@@ -1,16 +1,27 @@
-version: '3.8'
+# =============================================================
+# SETUP: Buat file .env dari .env.example sebelum menjalankan:
+#   cp .env.example .env
+# Lalu isi nilai yang sesuai di file .env tersebut.
+# =============================================================
+
 services:
   db:
     image: postgres:16
     container_name: erp_pkp_db
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: erp_pkp
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
     ports:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
     restart: unless-stopped
 
   backend:
@@ -20,21 +31,21 @@ services:
     container_name: erp_pkp_backend
     ports:
       - "8080:8080"
-    environment:
-      - DB_HOST=db
-      - DB_USER=postgres
-      - DB_PASSWORD=password
-      - DB_NAME=erp_pkp
-      - DB_PORT=5432
-      - AUTO_SEED=true
+    env_file:
+      - .env
     depends_on:
-      - db
+      db:
+        condition: service_healthy
+    volumes:
+      - uploads_data:/app/uploads
     restart: unless-stopped
 
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        - VITE_API_BASE_URL=${VITE_API_BASE_URL}
     container_name: erp_pkp_frontend
     ports:
       - "3000:80"
@@ -44,3 +55,4 @@ services:
 
 volumes:
   pgdata:
+  uploads_data:
