@@ -31,7 +31,8 @@ type DashboardStats struct {
 func Dashboard(c *gin.Context) {
 	now := time.Now()
 	startOfMonth := time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, now.Location())
-	thirtyDaysAgo := now.AddDate(0, 0, -30)
+	thirtyDaysAgo := now.AddDate(0, 0, -29)
+	startOfThirtyDays := time.Date(thirtyDaysAgo.Year(), thirtyDaysAgo.Month(), thirtyDaysAgo.Day(), 0, 0, 0, 0, now.Location())
 
 	// --- Total Penjualan & PPN Bulan Ini ---
 	var totalRevenue, totalPPN float64
@@ -53,15 +54,34 @@ func Dashboard(c *gin.Context) {
 	}
 
 	// --- Grafik Penjualan 30 Hari Terakhir (per hari, grand_total) ---
-	var chartData []MonthlySalePoint
+	type RawChartPoint struct {
+		Date  string  `gorm:"column:date"`
+		Total float64 `gorm:"column:total"`
+	}
+
+	var rawPoints []RawChartPoint
 	db.DB.Model(&models.Invoice{}).
-		Where("created_at >= ? AND deleted_at IS NULL", thirtyDaysAgo).
-		Select("TO_CHAR(created_at, 'YYYY-MM-DD') as date, SUM(grand_total) as total").
+		Where("created_at >= ? AND deleted_at IS NULL", startOfThirtyDays).
+		Select("TO_CHAR(created_at, 'YYYY-MM-DD') as date, COALESCE(SUM(grand_total), 0) as total").
 		Group("TO_CHAR(created_at, 'YYYY-MM-DD')").
 		Order("date asc").
-		Scan(&chartData)
-	if chartData == nil {
-		chartData = []MonthlySalePoint{}
+		Scan(&rawPoints)
+
+	salesMap := make(map[string]float64)
+	for _, p := range rawPoints {
+		salesMap[p.Date] = p.Total
+	}
+
+	// Generate 30 continuous date points (Zero-filling)
+	var chartData []MonthlySalePoint
+	for i := 0; i < 30; i++ {
+		d := startOfThirtyDays.AddDate(0, 0, i)
+		dateKey := d.Format("2006-01-02")
+		val := salesMap[dateKey]
+		chartData = append(chartData, MonthlySalePoint{
+			Date:  dateKey,
+			Total: val,
+		})
 	}
 
 	c.JSON(http.StatusOK, DashboardStats{

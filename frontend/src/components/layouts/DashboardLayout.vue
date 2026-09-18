@@ -1,13 +1,21 @@
 <template>
-  <div class="min-h-screen bg-slate-50 flex font-sans">
+  <div class="min-h-screen bg-slate-100 flex font-sans relative overflow-x-hidden">
+    
+    <!-- Mobile Backdrop Overlay -->
+    <div
+      v-if="isSidebarOpen"
+      class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-40 lg:hidden transition-opacity duration-300"
+      @click="closeSidebarOnMobile"
+    ></div>
+
     <!-- Sidebar -->
     <aside
-      class="w-64 flex flex-col transition-all duration-300 flex-shrink-0 shadow-2xl"
-      :class="{ '-ml-64': !isSidebarOpen }"
-      style="background: linear-gradient(180deg, #4A1010 0%, #5C1A1A 40%, #5C1A1A 100%);"
+      class="fixed lg:static inset-y-0 left-0 z-50 w-72 lg:w-64 flex flex-col transition-transform duration-300 ease-in-out flex-shrink-0 shadow-2xl lg:shadow-none"
+      :class="isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:-ml-64 lg:translate-x-0'"
+      style="background: linear-gradient(180deg, #4A1010 0%, #5C1A1A 40%, #3B0D0D 100%);"
     >
       <!-- Logo Header -->
-      <div class="h-16 flex items-center px-4 flex-shrink-0" style="border-bottom: 1px solid rgba(252,129,129,0.15);">
+      <div class="h-16 flex items-center justify-between px-4 flex-shrink-0" style="border-bottom: 1px solid rgba(252,129,129,0.15);">
         <h1 class="text-xl font-bold flex items-center gap-3" style="color: #FECDD3;">
           <div
             class="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 shadow-lg"
@@ -15,8 +23,20 @@
           >
             <LayoutDashboard class="w-5 h-5" style="color: #FECDD3;" />
           </div>
-          <span class="text-base font-semibold tracking-wide" style="color: #FECDD3;">ERP System</span>
+          <div>
+            <span class="text-base font-bold tracking-tight block leading-none" style="color: #FECDD3;">Trading ERP</span>
+            <span class="text-[10px] text-rose-300/60 font-medium tracking-wider uppercase">Enterprise Suite</span>
+          </div>
         </h1>
+
+        <!-- Close button for mobile screen -->
+        <button
+          @click="isSidebarOpen = false"
+          class="lg:hidden p-1.5 rounded-lg text-rose-200/70 hover:text-rose-100 hover:bg-white/10 transition-colors"
+          title="Tutup Menu"
+        >
+          <X class="w-5 h-5" />
+        </button>
       </div>
 
       <!-- Navigation -->
@@ -28,9 +48,10 @@
             to="/dashboard"
             class="sidebar-link group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-150"
             active-class="sidebar-link-active"
+            @click="handleNavClick"
           >
             <LayoutDashboard class="sidebar-icon w-5 h-5 mr-3 flex-shrink-0" />
-            Dashboard
+            Dashboard Overview
           </router-link>
 
           <!-- Master Data -->
@@ -55,6 +76,7 @@
                   to="/dashboard/master-data/products"
                   class="sidebar-sublink group flex items-center px-3 py-2 text-sm rounded-lg transition-all duration-150"
                   active-class="sidebar-sublink-active"
+                  @click="handleNavClick"
                 >
                   <span class="w-1.5 h-1.5 rounded-full mr-2.5 flex-shrink-0" style="background: rgba(252,129,129,0.5);"></span>
                   Data Produk
@@ -63,6 +85,7 @@
                   to="/dashboard/master-data/partners"
                   class="sidebar-sublink group flex items-center px-3 py-2 text-sm rounded-lg transition-all duration-150"
                   active-class="sidebar-sublink-active"
+                  @click="handleNavClick"
                 >
                   <span class="w-1.5 h-1.5 rounded-full mr-2.5 flex-shrink-0" style="background: rgba(252,129,129,0.5);"></span>
                   Data Mitra
@@ -93,6 +116,7 @@
                   to="/dashboard/inventory/management"
                   class="sidebar-sublink group flex items-center px-3 py-2 text-sm rounded-lg transition-all duration-150"
                   active-class="sidebar-sublink-active"
+                  @click="handleNavClick"
                 >
                   <span class="w-1.5 h-1.5 rounded-full mr-2.5 flex-shrink-0" style="background: rgba(252,129,129,0.5);"></span>
                   Manajemen Stok
@@ -123,6 +147,7 @@
                   to="/dashboard/sales/management"
                   class="sidebar-sublink group flex items-center px-3 py-2 text-sm rounded-lg transition-all duration-150"
                   active-class="sidebar-sublink-active"
+                  @click="handleNavClick"
                 >
                   <span class="w-1.5 h-1.5 rounded-full mr-2.5 flex-shrink-0" style="background: rgba(252,129,129,0.5);"></span>
                   Manajemen Penjualan
@@ -131,14 +156,16 @@
                   to="/dashboard/sales/create"
                   class="sidebar-sublink group flex items-center px-3 py-2 text-sm rounded-lg transition-all duration-150"
                   active-class="sidebar-sublink-active"
+                  @click="handleNavClick"
                 >
                   <span class="w-1.5 h-1.5 rounded-full mr-2.5 flex-shrink-0" style="background: rgba(252,129,129,0.5);"></span>
-                  Buat Faktur
+                  Buat Faktur Baru
                 </router-link>
                 <router-link
                   to="/dashboard/sales/list"
                   class="sidebar-sublink group flex items-center px-3 py-2 text-sm rounded-lg transition-all duration-150"
                   active-class="sidebar-sublink-active"
+                  @click="handleNavClick"
                 >
                   <span class="w-1.5 h-1.5 rounded-full mr-2.5 flex-shrink-0" style="background: rgba(252,129,129,0.5);"></span>
                   Daftar Faktur
@@ -155,7 +182,7 @@
             >
               <div class="flex items-center">
                 <BarChart3 class="sidebar-icon w-5 h-5 mr-3 flex-shrink-0" />
-                Laporan
+                Laporan &amp; Analitik
               </div>
               <ChevronDown
                 class="w-4 h-4 flex-shrink-0 transition-transform duration-200"
@@ -169,17 +196,19 @@
                   to="/dashboard/reports/profit"
                   class="sidebar-sublink group flex items-center px-3 py-2 text-sm rounded-lg transition-all duration-150"
                   active-class="sidebar-sublink-active"
+                  @click="handleNavClick"
                 >
                   <span class="w-1.5 h-1.5 rounded-full mr-2.5 flex-shrink-0" style="background: rgba(252,129,129,0.5);"></span>
-                  Laba Kotor
+                  Laba Kotor (HPP)
                 </router-link>
                 <router-link
                   to="/dashboard/reports/tax"
                   class="sidebar-sublink group flex items-center px-3 py-2 text-sm rounded-lg transition-all duration-150"
                   active-class="sidebar-sublink-active"
+                  @click="handleNavClick"
                 >
                   <span class="w-1.5 h-1.5 rounded-full mr-2.5 flex-shrink-0" style="background: rgba(252,129,129,0.5);"></span>
-                  Pajak Keluaran
+                  Pajak Keluaran (PPN)
                 </router-link>
               </div>
             </div>
@@ -193,7 +222,7 @@
             >
               <div class="flex items-center">
                 <Settings class="sidebar-icon w-5 h-5 mr-3 flex-shrink-0" />
-                Pengaturan
+                Pengaturan Sistem
               </div>
               <ChevronDown
                 class="w-4 h-4 flex-shrink-0 transition-transform duration-200"
@@ -207,6 +236,7 @@
                   to="/dashboard/settings/company"
                   class="sidebar-sublink group flex items-center px-3 py-2 text-sm rounded-lg transition-all duration-150"
                   active-class="sidebar-sublink-active"
+                  @click="handleNavClick"
                 >
                   <span class="w-1.5 h-1.5 rounded-full mr-2.5 flex-shrink-0" style="background: rgba(252,129,129,0.5);"></span>
                   Profil Perusahaan
@@ -215,9 +245,10 @@
                   to="/dashboard/settings/users"
                   class="sidebar-sublink group flex items-center px-3 py-2 text-sm rounded-lg transition-all duration-150"
                   active-class="sidebar-sublink-active"
+                  @click="handleNavClick"
                 >
                   <span class="w-1.5 h-1.5 rounded-full mr-2.5 flex-shrink-0" style="background: rgba(252,129,129,0.5);"></span>
-                  Pengguna
+                  Kelola Pengguna
                 </router-link>
               </div>
             </div>
@@ -230,46 +261,89 @@
       <div class="px-3 py-3 flex-shrink-0" style="border-top: 1px solid rgba(252,129,129,0.15);">
         <button
           @click="handleLogout"
-          class="w-full group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-150"
+          class="w-full group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-150 cursor-pointer"
           style="color: rgba(252,165,165,0.8);"
           @mouseover="($event.currentTarget as HTMLElement).style.background='rgba(252,129,129,0.12)'; ($event.currentTarget as HTMLElement).style.color='#FECDD3'"
           @mouseleave="($event.currentTarget as HTMLElement).style.background='transparent'; ($event.currentTarget as HTMLElement).style.color='rgba(252,165,165,0.8)'"
         >
           <LogOut class="w-5 h-5 mr-3 flex-shrink-0" />
-          Logout
+          Keluar Sistem
         </button>
       </div>
     </aside>
 
     <!-- Main Content wrapper -->
-    <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
-      <!-- Header -->
-      <header class="bg-white border-b border-slate-200 h-16 flex items-center justify-between px-4 sm:px-6 lg:px-8 z-10" style="box-shadow: 0 1px 3px rgba(0,0,0,0.06);">
-        <div class="flex items-center">
+    <div class="flex-1 flex flex-col min-w-0 overflow-hidden w-full">
+      <!-- Modern Redesigned Header -->
+      <header class="bg-white/95 backdrop-blur border-b border-slate-200/80 h-16 flex items-center justify-between px-3 sm:px-6 lg:px-8 z-30 sticky top-0 shadow-sm">
+        
+        <!-- Left: Toggle & Dynamic Breadcrumb -->
+        <div class="flex items-center gap-3">
           <button
             @click="isSidebarOpen = !isSidebarOpen"
-            class="p-2 rounded-md text-slate-500 hover:text-slate-700 hover:bg-slate-100 focus:outline-none transition-colors duration-150"
+            class="p-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 focus:outline-none transition-colors duration-150 cursor-pointer"
+            aria-label="Toggle navigation menu"
           >
-            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
+            <Menu class="h-5 w-5" />
           </button>
-        </div>
-        <div class="flex items-center gap-3">
-          <div class="flex items-center gap-2 text-sm text-slate-600">
-            <div class="w-7 h-7 rounded-full flex items-center justify-center" style="background: #5C1A1A;">
-              <User class="w-4 h-4 text-red-200" />
-            </div>
-            <span class="font-medium">{{ authStore.user?.username }}</span>
-            <span class="text-xs px-2 py-0.5 rounded-full bg-red-50 text-red-700 font-medium border border-red-200">{{ authStore.user?.role }}</span>
+          
+          <!-- Breadcrumb Path -->
+          <div class="flex items-center gap-2 text-xs sm:text-sm font-medium text-slate-500">
+            <span class="hidden md:inline-flex items-center gap-1.5 text-slate-400">
+              <Building2 class="w-4 h-4 text-rose-800" />
+              <span>ERP</span>
+            </span>
+            <ChevronRight class="hidden md:inline-block w-3.5 h-3.5 text-slate-300" />
+            <span class="text-slate-800 font-semibold truncate max-w-[160px] sm:max-w-xs">
+              {{ currentRouteTitle }}
+            </span>
           </div>
+        </div>
+        
+        <!-- Right: Status, Date, User Info & Quick Action -->
+        <div class="flex items-center gap-2.5 sm:gap-4">
+          
+          <!-- Live Status Badge (Hidden on very small screens) -->
+          <div class="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-medium">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span>Online</span>
+          </div>
+
+          <!-- Current Date Indicator (Hidden on mobile) -->
+          <div class="hidden md:flex items-center gap-1.5 text-xs text-slate-500 font-medium px-2 py-1 bg-slate-50 rounded-lg border border-slate-200/60">
+            <Calendar class="w-3.5 h-3.5 text-slate-400" />
+            <span>{{ currentDateStr }}</span>
+          </div>
+
+          <!-- User Profile Badge & Quick Menu -->
+          <div class="flex items-center gap-2.5 pl-2 sm:border-l sm:border-slate-200">
+            <div class="flex items-center gap-2">
+              <div class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 shadow-sm border border-rose-200" style="background: linear-gradient(135deg, #7B1D1D, #4A1010);">
+                <User class="w-4 h-4 text-rose-100" />
+              </div>
+              <div class="hidden sm:flex flex-col text-left leading-tight">
+                <span class="text-xs font-bold text-slate-800 truncate max-w-[110px]">{{ authStore.user?.username }}</span>
+                <span class="text-[10px] font-semibold text-rose-700 uppercase tracking-wide">{{ authStore.user?.role }}</span>
+              </div>
+            </div>
+
+            <!-- Logout button right in header for quick access -->
+            <button
+              @click="handleLogout"
+              class="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+              title="Keluar"
+            >
+              <LogOut class="w-4 h-4" />
+            </button>
+          </div>
+
         </div>
       </header>
 
       <!-- Main viewport -->
-      <main class="flex-1 relative overflow-y-auto focus:outline-none">
-        <div class="py-6">
-          <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <main class="flex-1 relative overflow-y-auto focus:outline-none w-full bg-slate-50/70">
+        <div class="py-5 sm:py-7">
+          <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
             <router-view />
           </div>
         </div>
@@ -279,8 +353,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, reactive, computed, onMounted, onBeforeUnmount } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import {
   LayoutDashboard,
@@ -290,14 +364,78 @@ import {
   BarChart3,
   Settings,
   ChevronDown,
+  ChevronRight,
   LogOut,
   User,
+  Menu,
+  X,
+  Building2,
+  Calendar
 } from '@lucide/vue'
 
 const router = useRouter()
+const route = useRoute()
 const authStore = useAuthStore()
 
-const isSidebarOpen = ref(true)
+// Dynamic Route Title
+const currentRouteTitle = computed(() => {
+  const name = route.name as string
+  switch (name) {
+    case 'DashboardOverview': return 'Dashboard Overview'
+    case 'Products': return 'Data Master Produk'
+    case 'Partners': return 'Data Mitra (Klien & Supplier)'
+    case 'StockManagement': return 'Manajemen Stok & Gudang'
+    case 'SalesManagement': return 'Manajemen Penjualan'
+    case 'CreateInvoice': return 'Buat Faktur Baru'
+    case 'InvoiceList': return 'Daftar Faktur Penjualan'
+    case 'ProfitReport': return 'Laporan Laba Kotor'
+    case 'TaxReport': return 'Laporan Pajak Keluaran (PPN)'
+    case 'CompanySettings': return 'Profil Perusahaan'
+    case 'UsersManagement': return 'Manajemen Pengguna'
+    default: return 'ERP Dashboard'
+  }
+})
+
+// Current Date in Indonesian
+const currentDateStr = computed(() => {
+  return new Intl.DateTimeFormat('id-ID', {
+    weekday: 'short',
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric'
+  }).format(new Date())
+})
+
+// On mobile (<1024px), sidebar defaults to closed. On desktop, defaults to open.
+const isSidebarOpen = ref(window.innerWidth >= 1024)
+
+const checkWindowSize = () => {
+  if (window.innerWidth >= 1024) {
+    isSidebarOpen.value = true
+  } else {
+    isSidebarOpen.value = false
+  }
+}
+
+onMounted(() => {
+  window.addEventListener('resize', checkWindowSize)
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', checkWindowSize)
+})
+
+const closeSidebarOnMobile = () => {
+  if (window.innerWidth < 1024) {
+    isSidebarOpen.value = false
+  }
+}
+
+const handleNavClick = () => {
+  if (window.innerWidth < 1024) {
+    isSidebarOpen.value = false
+  }
+}
 
 const openMenus = reactive({
   master: false,
