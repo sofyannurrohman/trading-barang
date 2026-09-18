@@ -40,10 +40,14 @@ func seedUser(d *gorm.DB) {
 
 func seedCompanyProfile(d *gorm.DB) {
 	profile := models.CompanyProfile{
-		Name:    "PT TRADING BARANG DEMO",
-		Address: "Jl. Sudirman No. 1, Jakarta Pusat",
-		NPWP:    "12.345.678.9-012.000",
-		PPNRate: 11.0,
+		Name:          "UD DUO SRIKANDI",
+		Address:       "Jl. Perdagangan Raya No. 88, Jawa Timur",
+		NPWP:          "31.456.789.0-604.000",
+		Phone:         "+62 812-3456-7890",
+		Email:         "kontak@duosrikandi.com",
+		BankInfo:      "BCA: 8870-123-456 a/n UD DUO SRIKANDI\nBRI: 0123-01-000456-50-1 a/n UD DUO SRIKANDI",
+		InvoiceFooter: "Barang yang sudah dibeli tidak dapat ditukar/dikembalikan kecuali ada perjanjian tertulis sebelumnya. Pembayaran dianggap lunas apabila telah masuk ke rekening resmi kami.",
+		PPNRate:       11.0,
 	}
 	d.Create(&profile)
 }
