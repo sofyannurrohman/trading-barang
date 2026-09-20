@@ -68,6 +68,7 @@ func main() {
 		api.GET("/sales/invoices/:id", controllers.GetInvoiceDetails)
 		api.PUT("/sales/invoices/:id", controllers.UpdateInvoice)
 		api.DELETE("/sales/invoices/:id", controllers.DeleteInvoice)
+		api.POST("/sales/invoices/:id/restore", controllers.RestoreInvoice)
 
 		// Reports
 		api.GET("/reports/profit", controllers.GetProfitReport)
@@ -82,6 +83,7 @@ func main() {
 		api.POST("/settings/users", middleware.RoleRequired("admin"), controllers.CreateUser)
 		api.PUT("/settings/users/:id", middleware.RoleRequired("admin"), controllers.UpdateUser)
 		api.DELETE("/settings/users/:id", middleware.RoleRequired("admin"), controllers.DeleteUser)
+		api.POST("/settings/users/:id/restore", middleware.RoleRequired("admin"), controllers.RestoreUser)
 	}
 
 	// Serve uploaded static files

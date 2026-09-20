@@ -26,7 +26,7 @@ type UserUpdateInput struct {
 
 func GetUsers(c *gin.Context) {
 	var users []models.User
-	if err := db.DB.Find(&users).Error; err != nil {
+	if err := db.DB.Unscoped().Find(&users).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch users"})
 		return
 	}
@@ -116,4 +116,24 @@ func DeleteUser(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "User deleted successfully"})
+}
+
+func RestoreUser(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+		return
+	}
+	var user models.User
+	if err := db.DB.Unscoped().First(&user, id).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		return
+	}
+	if user.DeletedAt.Valid {
+		if err := db.DB.Unscoped().Model(&user).Update("deleted_at", nil).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to restore user"})
+			return
+		}
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "User restored successfully"})
 }

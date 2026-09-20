@@ -43,8 +43,9 @@
               </td>
               <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                 <div class="flex items-center justify-end gap-3">
-                  <button @click="openEditModal(user)" class="text-indigo-600 hover:text-indigo-900 font-semibold cursor-pointer">Edit</button>
-                  <button @click="openDeleteModal(user)" class="text-rose-600 hover:text-rose-900 font-semibold cursor-pointer">Hapus</button>
+                  <button v-if="!user.deleted_at" @click="openEditModal(user)" class="text-indigo-600 hover:text-indigo-900 font-semibold cursor-pointer">Edit</button>
+                  <button v-if="user.deleted_at" @click="restoreUser(user)" class="text-emerald-600 hover:text-emerald-900 font-semibold cursor-pointer">Pulihkan</button>
+                  <button v-else @click="openDeleteModal(user)" class="text-rose-600 hover:text-rose-900 font-semibold cursor-pointer">Hapus</button>
                 </div>
               </td>
             </tr>
@@ -131,6 +132,7 @@ interface User {
   username: string
   email: string
   role: string
+  deleted_at?: string | null
 }
 
 const users = ref<User[]>([])
@@ -233,6 +235,16 @@ const submitDelete = async () => {
     toast.error(error.response?.data?.error || 'Gagal menghapus pengguna.')
   } finally {
     deleteLoading.value = false
+  }
+}
+
+const restoreUser = async (user: User) => {
+  try {
+    await api.post(`/api/settings/users/${user.ID}/restore`, {}, { skipToast: true } as any)
+    toast.success(`Pengguna ${user.username} berhasil dipulihkan`)
+    await fetchUsers()
+  } catch (error: any) {
+    toast.error(error.response?.data?.error || 'Gagal memulihkan pengguna.')
   }
 }
 

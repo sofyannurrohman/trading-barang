@@ -18,7 +18,7 @@ type InvoiceItemInput struct {
 }
 
 type CreateInvoiceInput struct {
-	PartnerID    uint               `json:"partner_id" binding:"required"`
+	PartnerID    uint               `json:"partner_id"`
 	Items        []InvoiceItemInput `json:"items" binding:"required,min=1"`
 	ShippingCost float64            `json:"shipping_cost"`
 	Discount     float64            `json:"discount"`
@@ -33,6 +33,19 @@ func CreateInvoice(c *gin.Context) {
 	}
 
 	tx := db.DB.Begin()
+	partnerID := input.PartnerID
+	if partnerID == 0 {
+		var general models.Partner
+		if err := tx.Where("type = ? AND name = ?", "client", "Pelanggan Umum").First(&general).Error; err != nil {
+			general = models.Partner{Type: "client", Name: "Pelanggan Umum"}
+			if err := tx.Create(&general).Error; err != nil {
+				tx.Rollback()
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal menyiapkan pelanggan umum"})
+				return
+			}
+		}
+		partnerID = general.ID
+	}
 
 	// Generate Invoice Number (Simple generator)
 	invoiceNumber := fmt.Sprintf("INV-%d", time.Now().Unix())
@@ -47,7 +60,7 @@ func CreateInvoice(c *gin.Context) {
 
 	invoice := models.Invoice{
 		InvoiceNumber: invoiceNumber,
-		PartnerID:     input.PartnerID,
+		PartnerID:     partnerID,
 		ShippingCost:  input.ShippingCost,
 		Discount:      input.Discount,
 		IsTaxable:     isTaxable,
@@ -224,7 +237,51 @@ func DeleteInvoice(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal menghapus invoice"})
 		return
 	}
+	// Sembunyikan juga jurnal stok penjualan terkait, tanpa menghapusnya.
+	if err := tx.Where("reference = ? AND type = ?", invoice.InvoiceNumber, "SALE").Delete(&models.InventoryTransaction{}).Error; err != nil {
+		tx.Rollback()
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal mengarsipkan jurnal stok"})
+		return
+	}
 
 	tx.Commit()
 	c.JSON(http.StatusOK, gin.H{"message": "Invoice berhasil dihapus dan stok produk telah dikembalikan"})
+}
+
+// RestoreInvoice memulihkan invoice beserta jurnal stoknya dan mengurangi stok
+// kembali, sehingga restore tidak hanya mengembalikan tampilan data.
+func RestoreInvoice(c *gin.Context) {
+	id := c.Param("id")
+	var invoice models.Invoice
+	if err := db.DB.Unscoped().Preload("Items").First(&invoice, id).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Invoice tidak ditemukan"})
+		return
+	}
+	if !invoice.DeletedAt.Valid {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invoice masih aktif"})
+		return
+	}
+
+	tx := db.DB.Begin()
+	for _, item := range invoice.Items {
+		if err := tx.Model(&models.Product{}).Where("id = ?", item.ProductID).
+			UpdateColumn("current_stock", gorm.Expr("current_stock - ?", item.Quantity)).Error; err != nil {
+			tx.Rollback()
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal mengurangi stok saat pemulihan"})
+			return
+		}
+	}
+	if err := tx.Unscoped().Model(&invoice).Update("deleted_at", nil).Error; err != nil {
+		tx.Rollback()
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal memulihkan invoice"})
+		return
+	}
+	if err := tx.Unscoped().Model(&models.InventoryTransaction{}).
+		Where("reference = ? AND type = ?", invoice.InvoiceNumber, "SALE").Update("deleted_at", nil).Error; err != nil {
+		tx.Rollback()
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal memulihkan jurnal stok"})
+		return
+	}
+	tx.Commit()
+	c.JSON(http.StatusOK, gin.H{"message": "Invoice berhasil dipulihkan"})
 }

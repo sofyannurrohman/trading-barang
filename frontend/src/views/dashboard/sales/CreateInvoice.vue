@@ -2,7 +2,7 @@
   <div class="space-y-6">
     <div>
       <h2 class="text-xl sm:text-2xl font-bold text-slate-800">Buat Faktur Baru</h2>
-      <p class="text-slate-500 text-sm">Pilih klien dan masukkan barang yang dibeli.</p>
+      <p class="text-slate-500 text-sm">Pilih klien bila perlu, lalu masukkan barang yang dibeli.</p>
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -13,11 +13,11 @@
           <h3 class="text-base sm:text-lg font-semibold text-slate-800 mb-4">Informasi Penjualan</h3>
           
           <div class="mb-5">
-            <label class="block text-sm font-medium text-slate-700 mb-1">Klien (Pembeli) <span class="text-red-500">*</span></label>
+            <label class="block text-sm font-medium text-slate-700 mb-1">Klien (opsional)</label>
             <select v-model="form.partner_id" class="block w-full border border-slate-300 rounded-lg py-2.5 px-3 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm bg-white">
               <option value="" disabled>-- Pilih Klien --</option>
               <option v-for="client in clients" :key="client.ID" :value="client.ID">
-                {{ client.name }} ({{ client.npwp || client.nik || 'Tanpa NPWP/NIK' }})
+                {{ client.name }}
               </option>
             </select>
           </div>
@@ -127,7 +127,7 @@
 
           <button
             @click="submitInvoice"
-            :disabled="loading || cart.length === 0 || !form.partner_id"
+            :disabled="loading || cart.length === 0"
             class="mt-6 w-full py-3 px-4 rounded-xl shadow text-sm font-bold bg-gradient-to-r from-rose-600 to-red-700 hover:from-rose-500 hover:to-red-600 text-white disabled:opacity-50 transition-all cursor-pointer"
           >
             {{ loading ? 'Menyimpan...' : 'Buat Faktur Penjualan' }}
@@ -260,10 +260,6 @@ const grandTotal = computed(() => {
 })
 
 const submitInvoice = async () => {
-  if (!form.value.partner_id) {
-    errorMsg.value = 'Silakan pilih klien'
-    return
-  }
   if (cart.value.length === 0) {
     errorMsg.value = 'Keranjang belanja masih kosong'
     return
@@ -274,7 +270,7 @@ const submitInvoice = async () => {
 
   try {
     const payload = {
-      partner_id: Number(form.value.partner_id),
+      ...(form.value.partner_id ? { partner_id: Number(form.value.partner_id) } : {}),
       is_taxable: form.value.is_taxable,
       items: cart.value.map(item => ({
         product_id: item.product_id,
