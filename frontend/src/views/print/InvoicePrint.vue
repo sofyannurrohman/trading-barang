@@ -208,19 +208,11 @@
               </tr>
             </tbody>
             <tfoot>
-              <!-- DPP -->
+              <!-- Subtotal -->
               <tr class="border-t-2 border-slate-900">
                 <td colspan="3" class="border-r border-slate-900 p-2 text-right"></td>
-                <td class="border-r border-slate-900 px-3 py-1.5 font-bold text-right text-slate-800">DPP (Dasar Pajak)</td>
+                <td class="border-r border-slate-900 px-3 py-1.5 font-bold text-right text-slate-800">Subtotal</td>
                 <td class="px-3 py-1.5 font-bold text-right text-slate-950">Rp {{ formatNumber(invoice.total_dpp) }}</td>
-              </tr>
-              <!-- PPN -->
-              <tr>
-                <td colspan="3" class="border-r border-slate-900 p-2 text-right"></td>
-                <td class="border-r border-slate-900 px-3 py-1.5 font-bold text-right text-slate-800">
-                  PPN ({{ invoice.is_taxable ? (company.ppn_rate || 11) : 0 }}%)
-                </td>
-                <td class="px-3 py-1.5 font-bold text-right text-slate-950">Rp {{ formatNumber(invoice.total_ppn) }}</td>
               </tr>
               <!-- Ongkir (if any) -->
               <tr v-if="invoice.shipping_cost > 0">

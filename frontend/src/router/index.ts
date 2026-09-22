@@ -26,14 +26,14 @@ const routes = [
       // Gudang & Inventori
       { path: 'inventory/management', name: 'StockManagement', component: () => import('../views/dashboard/inventory/StockManagement.vue') },
       
-      // Penjualan & Faktur
+      // Penjualan & Faktur (Pusat Transaksi & Faktur Terpadu)
       { path: 'sales/management', name: 'SalesManagement', component: () => import('../views/dashboard/sales/SalesManagement.vue') },
-      { path: 'sales/create', name: 'CreateInvoice', component: () => import('../views/dashboard/sales/CreateInvoice.vue') },
-      { path: 'sales/list', name: 'InvoiceList', component: () => import('../views/dashboard/sales/InvoiceList.vue') },
+      { path: 'sales/create', redirect: '/dashboard/sales/management' },
+      { path: 'sales/list', redirect: '/dashboard/sales/management' },
       
       // Laporan
       { path: 'reports/profit', name: 'ProfitReport', component: () => import('../views/dashboard/reports/ProfitReport.vue') },
-      { path: 'reports/tax', name: 'TaxReport', component: () => import('../views/dashboard/reports/TaxReport.vue') },
+      { path: 'reports/tax', redirect: '/dashboard/reports/profit' },
       
       // Pengaturan
       { path: 'settings/company', name: 'CompanySettings', component: () => import('../views/dashboard/settings/CompanyProfile.vue') },

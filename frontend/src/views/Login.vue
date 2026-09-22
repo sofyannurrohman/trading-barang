@@ -26,7 +26,7 @@
       <div class="relative z-10 max-w-xl space-y-8 my-auto py-12">
         <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-rose-500/10 border border-rose-500/20 text-rose-300 text-xs font-semibold backdrop-blur-sm shadow-sm">
           <Sparkles class="w-3.5 h-3.5 text-rose-400" />
-          <span>Solusi Manajemen Terpadu &amp; Faktur Pajak</span>
+          <span>Solusi Manajemen Operasional &amp; Penjualan Terpadu</span>
         </div>
 
         <div class="space-y-4">
@@ -34,7 +34,7 @@
             Akurasi Operasional &amp; Kontrol Bisnis <span class="bg-gradient-to-r from-rose-300 via-red-200 to-amber-200 bg-clip-text text-transparent">Real-Time.</span>
           </h1>
           <p class="text-slate-300/85 text-base xl:text-lg leading-relaxed font-normal">
-            Kelola persediaan multi-barang, penerbitan invoice dengan PPN otomatis, dan analisa margin laba bersih dalam satu platform yang handal dan presisi.
+            Kelola persediaan multi-barang, penerbitan invoice transaksi cepat, dan analisa margin laba bersih dalam satu platform yang handal dan presisi.
           </p>
         </div>
 
@@ -47,8 +47,8 @@
           </div>
           <div class="p-4 rounded-xl bg-white/[0.04] border border-white/10 backdrop-blur-md hover:bg-white/[0.07] transition-colors">
             <Receipt class="w-5 h-5 text-rose-400 mb-2" />
-            <h4 class="text-sm font-semibold text-white">Faktur &amp; Pajak</h4>
-            <p class="text-xs text-slate-400 mt-1">Kalkulasi PPN 11% &amp; cetak invoice instan.</p>
+            <h4 class="text-sm font-semibold text-white">Faktur &amp; Invoice</h4>
+            <p class="text-xs text-slate-400 mt-1">Penerbitan faktur cepat &amp; cetak dokumen instan.</p>
           </div>
           <div class="p-4 rounded-xl bg-white/[0.04] border border-white/10 backdrop-blur-md hover:bg-white/[0.07] transition-colors">
             <TrendingUp class="w-5 h-5 text-rose-400 mb-2" />
@@ -64,7 +64,7 @@
           <ShieldCheck class="w-4 h-4 text-emerald-400" />
           <span>Role-Based Access &amp; Enkripsi Terproteksi</span>
         </div>
-        <span>&copy; {{ new Date().getFullYear() }} PT Trading Barang</span>
+        <span>&copy; {{ new Date().getFullYear() }} UD DUO SRIKANDI</span>
       </div>
     </div>
 

@@ -26,6 +26,11 @@ func GetCompanyProfile(c *gin.Context) {
 		}
 		// Auto-save initial profile so it persists in DB
 		db.DB.Create(&profile)
+	} else if profile.Name == "" || profile.Name == "PT Trading Barang" || profile.Name == "PT Trading Barang Demo" || profile.Name == "Trading Barang" {
+		profile.Name = "UD DUO SRIKANDI"
+		profile.Email = "kontak@duosrikandi.com"
+		profile.BankInfo = "BCA: 8870-123-456 a/n UD DUO SRIKANDI\nBRI: 0123-01-000456-50-1 a/n UD DUO SRIKANDI"
+		db.DB.Save(&profile)
 	}
 
 	c.JSON(http.StatusOK, profile)

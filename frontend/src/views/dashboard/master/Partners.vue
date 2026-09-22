@@ -3,7 +3,7 @@
     <div class="flex items-center justify-between">
       <div>
         <h2 class="text-2xl font-bold text-slate-800">Data Mitra</h2>
-        <p class="text-slate-500">Kelola daftar Klien dan Supplier, beserta NPWP/NIK untuk kebutuhan faktur pajak.</p>
+        <p class="text-slate-500">Kelola daftar Klien dan Supplier beserta informasi kontak dan identitas.</p>
       </div>
       <button
         @click="openDialog()"

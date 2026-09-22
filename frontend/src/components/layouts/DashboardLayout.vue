@@ -94,125 +94,38 @@
             </div>
           </div>
 
-          <!-- Gudang & Inventori -->
-          <div class="mt-0.5">
-            <button
-              @click="toggleMenu('inventory')"
-              class="sidebar-link group w-full flex items-center justify-between px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-150"
-            >
-              <div class="flex items-center">
-                <Warehouse class="sidebar-icon w-5 h-5 mr-3 flex-shrink-0" />
-                Gudang &amp; Inventori
-              </div>
-              <ChevronDown
-                class="w-4 h-4 flex-shrink-0 transition-transform duration-200"
-                :class="openMenus.inventory ? 'rotate-0' : '-rotate-90'"
-                style="color: rgba(252,129,129,0.6);"
-              />
-            </button>
-            <div v-show="openMenus.inventory" class="mt-0.5 space-y-0.5 pl-4">
-              <div class="pl-3 border-l" style="border-color: rgba(252,129,129,0.2);">
-                <router-link
-                  to="/dashboard/inventory/management"
-                  class="sidebar-sublink group flex items-center px-3 py-2 text-sm rounded-lg transition-all duration-150"
-                  active-class="sidebar-sublink-active"
-                  @click="handleNavClick"
-                >
-                  <span class="w-1.5 h-1.5 rounded-full mr-2.5 flex-shrink-0" style="background: rgba(252,129,129,0.5);"></span>
-                  Manajemen Stok
-                </router-link>
-              </div>
-            </div>
-          </div>
+          <!-- Gudang & Stok (1-Click Direct Link) -->
+          <router-link
+            to="/dashboard/inventory/management"
+            class="sidebar-link group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-150 mt-0.5"
+            active-class="sidebar-link-active"
+            @click="handleNavClick"
+          >
+            <Warehouse class="sidebar-icon w-5 h-5 mr-3 flex-shrink-0" />
+            Gudang &amp; Stok
+          </router-link>
 
-          <!-- Penjualan & Faktur -->
-          <div class="mt-0.5">
-            <button
-              @click="toggleMenu('sales')"
-              class="sidebar-link group w-full flex items-center justify-between px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-150"
-            >
-              <div class="flex items-center">
-                <ShoppingCart class="sidebar-icon w-5 h-5 mr-3 flex-shrink-0" />
-                Penjualan &amp; Faktur
-              </div>
-              <ChevronDown
-                class="w-4 h-4 flex-shrink-0 transition-transform duration-200"
-                :class="openMenus.sales ? 'rotate-0' : '-rotate-90'"
-                style="color: rgba(252,129,129,0.6);"
-              />
-            </button>
-            <div v-show="openMenus.sales" class="mt-0.5 space-y-0.5 pl-4">
-              <div class="pl-3 border-l" style="border-color: rgba(252,129,129,0.2);">
-                <router-link
-                  to="/dashboard/sales/management"
-                  class="sidebar-sublink group flex items-center px-3 py-2 text-sm rounded-lg transition-all duration-150"
-                  active-class="sidebar-sublink-active"
-                  @click="handleNavClick"
-                >
-                  <span class="w-1.5 h-1.5 rounded-full mr-2.5 flex-shrink-0" style="background: rgba(252,129,129,0.5);"></span>
-                  Manajemen Penjualan
-                </router-link>
-                <router-link
-                  to="/dashboard/sales/create"
-                  class="sidebar-sublink group flex items-center px-3 py-2 text-sm rounded-lg transition-all duration-150"
-                  active-class="sidebar-sublink-active"
-                  @click="handleNavClick"
-                >
-                  <span class="w-1.5 h-1.5 rounded-full mr-2.5 flex-shrink-0" style="background: rgba(252,129,129,0.5);"></span>
-                  Buat Faktur Baru
-                </router-link>
-                <router-link
-                  to="/dashboard/sales/list"
-                  class="sidebar-sublink group flex items-center px-3 py-2 text-sm rounded-lg transition-all duration-150"
-                  active-class="sidebar-sublink-active"
-                  @click="handleNavClick"
-                >
-                  <span class="w-1.5 h-1.5 rounded-full mr-2.5 flex-shrink-0" style="background: rgba(252,129,129,0.5);"></span>
-                  Daftar Faktur
-                </router-link>
-              </div>
-            </div>
-          </div>
+          <!-- Penjualan & Faktur (1-Click Direct Link) -->
+          <router-link
+            to="/dashboard/sales/management"
+            class="sidebar-link group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-150 mt-0.5"
+            active-class="sidebar-link-active"
+            @click="handleNavClick"
+          >
+            <ShoppingCart class="sidebar-icon w-5 h-5 mr-3 flex-shrink-0" />
+            Penjualan &amp; Faktur
+          </router-link>
 
-          <!-- Laporan -->
-          <div class="mt-0.5">
-            <button
-              @click="toggleMenu('reports')"
-              class="sidebar-link group w-full flex items-center justify-between px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-150"
-            >
-              <div class="flex items-center">
-                <BarChart3 class="sidebar-icon w-5 h-5 mr-3 flex-shrink-0" />
-                Laporan &amp; Analitik
-              </div>
-              <ChevronDown
-                class="w-4 h-4 flex-shrink-0 transition-transform duration-200"
-                :class="openMenus.reports ? 'rotate-0' : '-rotate-90'"
-                style="color: rgba(252,129,129,0.6);"
-              />
-            </button>
-            <div v-show="openMenus.reports" class="mt-0.5 space-y-0.5 pl-4">
-              <div class="pl-3 border-l" style="border-color: rgba(252,129,129,0.2);">
-                <router-link
-                  to="/dashboard/reports/profit"
-                  class="sidebar-sublink group flex items-center px-3 py-2 text-sm rounded-lg transition-all duration-150"
-                  active-class="sidebar-sublink-active"
-                  @click="handleNavClick"
-                >
-                  <span class="w-1.5 h-1.5 rounded-full mr-2.5 flex-shrink-0" style="background: rgba(252,129,129,0.5);"></span>
-                  Laba Kotor (HPP)
-                </router-link>
-                <router-link
-                  to="/dashboard/reports/tax"
-                  class="sidebar-sublink group flex items-center px-3 py-2 text-sm rounded-lg transition-all duration-150"
-                  active-class="sidebar-sublink-active"
-                  @click="handleNavClick"
-                >
-                  <span class="w-1.5 h-1.5 rounded-full mr-2.5 flex-shrink-0" style="background: rgba(252,129,129,0.5);"></span>
-                  Pajak Keluaran (PPN)
-                </router-link>
-              </div>
-            </div>
-          </div>
+          <!-- Laporan Laba Rugi (1-Click Direct Link) -->
+          <router-link
+            to="/dashboard/reports/profit"
+            class="sidebar-link group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-150 mt-0.5"
+            active-class="sidebar-link-active"
+            @click="handleNavClick"
+          >
+            <BarChart3 class="sidebar-icon w-5 h-5 mr-3 flex-shrink-0" />
+            Laporan Laba Rugi
+          </router-link>
 
           <!-- Pengaturan -->
           <div class="mt-0.5">
@@ -384,12 +297,9 @@ const currentRouteTitle = computed(() => {
     case 'DashboardOverview': return 'Dashboard Overview'
     case 'Products': return 'Data Master Produk'
     case 'Partners': return 'Data Mitra (Klien & Supplier)'
-    case 'StockManagement': return 'Manajemen Stok & Gudang'
-    case 'SalesManagement': return 'Manajemen Penjualan'
-    case 'CreateInvoice': return 'Buat Faktur Baru'
-    case 'InvoiceList': return 'Daftar Faktur Penjualan'
-    case 'ProfitReport': return 'Laporan Laba Kotor'
-    case 'TaxReport': return 'Laporan Pajak Keluaran (PPN)'
+    case 'StockManagement': return 'Gudang & Stok'
+    case 'SalesManagement': return 'Penjualan & Faktur'
+    case 'ProfitReport': return 'Laporan Laba Rugi'
     case 'CompanySettings': return 'Profil Perusahaan'
     case 'UsersManagement': return 'Manajemen Pengguna'
     default: return 'ERP Dashboard'

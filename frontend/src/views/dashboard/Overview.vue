@@ -20,7 +20,7 @@
           Selamat Datang, <span class="bg-gradient-to-r from-rose-200 via-pink-100 to-amber-200 bg-clip-text text-transparent">{{ authStore.user?.username || 'Admin' }}</span>!
         </h1>
         <p class="text-sm sm:text-base text-rose-100/80 leading-relaxed">
-          Semua transaksi, persediaan barang di gudang, dan rekonsiliasi PPN bulan ini siap dipantau secara real-time.
+          Semua transaksi, persediaan barang di gudang, dan laporan performa penjualan siap dipantau secara real-time.
         </p>
       </div>
 
@@ -84,7 +84,7 @@
           </span>
         </div>
         <div class="mt-4">
-          <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Penjualan (DPP)</p>
+          <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Penjualan</p>
           <div class="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-1 tracking-tight">
             <span v-if="loading" class="animate-pulse text-slate-400 text-xl font-normal">Memuat data...</span>
             <span v-else>Rp {{ formatNumber(stats?.total_revenue_this_month ?? 0) }}</span>
@@ -96,25 +96,25 @@
         </div>
       </div>
 
-      <!-- Estimasi PPN Terkumpul -->
+      <!-- Total Pendapatan Penjualan -->
       <div class="bg-white rounded-2xl p-5 sm:p-6 shadow-sm border border-slate-200/80 hover:shadow-md transition-shadow relative overflow-hidden group">
         <div class="flex items-center justify-between">
           <div class="w-12 h-12 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600 border border-emerald-100">
             <Receipt class="w-6 h-6" />
           </div>
           <span class="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-100">
-            PPN Keluaran
+            Akumulasi
           </span>
         </div>
         <div class="mt-4">
-          <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Estimasi Pajak PPN</p>
+          <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Transaksi</p>
           <div class="text-2xl sm:text-3xl font-extrabold text-emerald-600 mt-1 tracking-tight">
             <span v-if="loading" class="animate-pulse text-slate-400 text-xl font-normal">Memuat data...</span>
-            <span v-else>Rp {{ formatNumber(stats?.total_ppn_this_month ?? 0) }}</span>
+            <span v-else>Rp {{ formatNumber(stats?.total_revenue_this_month ?? 0) }}</span>
           </div>
           <div class="mt-2 flex items-center gap-1.5 text-xs text-slate-500">
             <ShieldCheck class="w-3.5 h-3.5 text-emerald-500" />
-            <span>Sesuai ketentuan tarif pajak PPN</span>
+            <span>Rekapitulasi penjualan bulan ini</span>
           </div>
         </div>
       </div>
@@ -217,8 +217,8 @@
           </div>
           <ArrowUpRight class="w-4 h-4 text-slate-400 group-hover:text-emerald-600 transition-colors" />
         </div>
-        <h4 class="text-sm font-bold text-slate-900 mt-4">Laba Rugi &amp; Pajak</h4>
-        <p class="text-xs text-slate-500 mt-1">Estimasi laba kotor berbasis HPP aktual dan rekapitulasi faktur pajak PPN.</p>
+        <h4 class="text-sm font-bold text-slate-900 mt-4">Laba Rugi &amp; Analitik</h4>
+        <p class="text-xs text-slate-500 mt-1">Estimasi laba kotor berbasis HPP aktual dan analisa margin penjualan.</p>
       </router-link>
 
     </div>

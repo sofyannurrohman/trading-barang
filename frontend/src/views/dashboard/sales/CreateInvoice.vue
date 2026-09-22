@@ -85,7 +85,13 @@
                   <td class="px-4 py-3 text-sm text-slate-900 text-center whitespace-nowrap font-semibold">{{ item.quantity }}</td>
                   <td class="px-4 py-3 text-sm font-bold text-slate-900 text-right whitespace-nowrap">Rp {{ formatNumber(item.quantity * item.unit_price) }}</td>
                   <td class="px-4 py-3 text-right text-sm font-medium whitespace-nowrap">
-                    <button @click="removeItem(index)" class="text-red-600 hover:text-red-900 font-medium cursor-pointer">Hapus</button>
+                    <button
+                      @click="removeItem(index)"
+                      class="p-1.5 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-md transition-colors cursor-pointer inline-flex items-center justify-center"
+                      title="Hapus Item"
+                    >
+                      <Trash2 class="w-4 h-4" />
+                    </button>
                   </td>
                 </tr>
               </tbody>
@@ -103,17 +109,9 @@
           </h3>
           
           <div class="space-y-3 text-sm text-slate-300">
-            <div class="flex justify-between items-center pb-3 border-b border-slate-800">
-              <span class="text-sm font-medium">Kenakan PPN ({{ ppnRate }}%)</span>
-              <input type="checkbox" v-model="form.is_taxable" class="h-4 w-4 rounded border-slate-700 text-indigo-500 focus:ring-indigo-500 bg-slate-800 cursor-pointer" />
-            </div>
             <div class="flex justify-between">
-              <span>DPP (Dasar Pengenaan Pajak)</span>
+              <span>Subtotal Produk</span>
               <span class="text-white font-medium">Rp {{ formatNumber(totalDPP) }}</span>
-            </div>
-            <div class="flex justify-between">
-              <span>Estimasi PPN</span>
-              <span class="text-white font-medium">Rp {{ formatNumber(totalPPN) }}</span>
             </div>
             <div class="border-t border-slate-800 pt-3 mt-3 flex justify-between text-base sm:text-lg font-bold text-white">
               <span>Total Akhir</span>
@@ -144,6 +142,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '@/plugins/axios'
 import { toast } from 'vue-sonner'
+import { Trash2 } from '@lucide/vue'
 
 const router = useRouter()
 
@@ -157,11 +156,9 @@ const cart = ref<CartItem[]>([])
 
 const loading = ref(false)
 const errorMsg = ref('')
-const ppnRate = ref(11)
 
 const form = ref({
-  partner_id: '',
-  is_taxable: true
+  partner_id: ''
 })
 
 const itemForm = ref({
@@ -177,16 +174,12 @@ const formatNumber = (val: number) => {
 
 const fetchData = async () => {
   try {
-    const [pRes, cRes, compRes] = await Promise.all([
+    const [pRes, cRes] = await Promise.all([
       api.get('/api/master/products'),
-      api.get('/api/master/partners?type=client'),
-      api.get('/api/settings/company')
+      api.get('/api/master/partners?type=client')
     ])
     products.value = pRes.data || []
     clients.value = cRes.data || []
-    if (compRes.data && compRes.data.ppn_rate !== undefined) {
-      ppnRate.value = compRes.data.ppn_rate
-    }
   } catch (error) {
     console.error('Failed to load form data', error)
   }
@@ -250,13 +243,8 @@ const totalDPP = computed(() => {
   return cart.value.reduce((sum, item) => sum + (item.quantity * item.unit_price), 0)
 })
 
-const totalPPN = computed(() => {
-  if (!form.value.is_taxable) return 0
-  return totalDPP.value * (ppnRate.value / 100)
-})
-
 const grandTotal = computed(() => {
-  return totalDPP.value + totalPPN.value
+  return totalDPP.value
 })
 
 const submitInvoice = async () => {
@@ -271,7 +259,7 @@ const submitInvoice = async () => {
   try {
     const payload = {
       ...(form.value.partner_id ? { partner_id: Number(form.value.partner_id) } : {}),
-      is_taxable: form.value.is_taxable,
+      is_taxable: false,
       items: cart.value.map(item => ({
         product_id: item.product_id,
         quantity: item.quantity,

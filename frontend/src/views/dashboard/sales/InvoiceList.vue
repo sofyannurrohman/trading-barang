@@ -3,7 +3,7 @@
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
       <div>
         <h2 class="text-xl sm:text-2xl font-bold text-slate-800">Daftar Faktur Penjualan</h2>
-        <p class="text-slate-500 text-sm">Riwayat seluruh transaksi penjualan dan cetak faktur pajak.</p>
+        <p class="text-slate-500 text-sm">Riwayat seluruh transaksi penjualan dan cetak dokumen faktur.</p>
       </div>
       <router-link
         to="/dashboard/sales/create"
@@ -45,9 +45,22 @@
                 </span>
               </td>
               <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                <div class="flex items-center justify-end gap-3">
-                  <a :href="`/print/invoice/${invoice.ID}`" target="_blank" class="text-blue-600 hover:text-blue-900 font-semibold">Cetak A4</a>
-                  <button @click="openEditModal(invoice)" class="text-indigo-600 hover:text-indigo-900 font-semibold cursor-pointer">Edit</button>
+                <div class="flex items-center justify-end gap-1.5">
+                  <a
+                    :href="`/print/invoice/${invoice.ID}`"
+                    target="_blank"
+                    class="p-1.5 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-md transition-colors inline-flex items-center justify-center"
+                    title="Cetak Faktur (A4)"
+                  >
+                    <Printer class="w-4 h-4" />
+                  </a>
+                  <button
+                    @click="openEditModal(invoice)"
+                    class="p-1.5 text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded-md transition-colors cursor-pointer inline-flex items-center justify-center"
+                    title="Edit Faktur"
+                  >
+                    <Pencil class="w-4 h-4" />
+                  </button>
                 </div>
               </td>
             </tr>
@@ -101,6 +114,7 @@
 import { ref, onMounted } from 'vue'
 import api from '@/plugins/axios'
 import { toast } from 'vue-sonner'
+import { Printer, Pencil } from '@lucide/vue'
 
 interface Invoice {
   ID: number

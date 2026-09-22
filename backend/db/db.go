@@ -55,4 +55,11 @@ func InitDB() {
 	if err != nil {
 		log.Fatal("Failed to migrate database:", err)
 	}
+
+	// Ensure CompanyProfile uses UD DUO SRIKANDI if old demo names exist
+	DB.Model(&models.CompanyProfile{}).Where("name ILIKE ?", "%trading%").Updates(map[string]interface{}{
+		"name":      "UD DUO SRIKANDI",
+		"email":     "kontak@duosrikandi.com",
+		"bank_info": "BCA: 8870-123-456 a/n UD DUO SRIKANDI\nBRI: 0123-01-000456-50-1 a/n UD DUO SRIKANDI",
+	})
 }

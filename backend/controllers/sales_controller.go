@@ -52,8 +52,8 @@ func CreateInvoice(c *gin.Context) {
 
 	var totalDPP float64 = 0
 
-	// Check if tax should be applied (default to true if missing)
-	isTaxable := true
+	// Check if tax should be applied (default to false)
+	isTaxable := false
 	if input.IsTaxable != nil {
 		isTaxable = *input.IsTaxable
 	}

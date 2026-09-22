@@ -109,22 +109,6 @@
           ></textarea>
         </div>
 
-        <!-- Pengaturan PPN -->
-        <div class="border-t border-slate-200 pt-5 mt-5">
-          <h3 class="text-sm font-bold text-slate-900 mb-1">Pengaturan Pajak Global</h3>
-          <p class="text-xs text-slate-500 mb-2">Persentase PPN default yang diterapkan saat membuat faktur baru.</p>
-          <div class="flex items-center gap-2">
-            <input 
-              type="number" 
-              step="0.1" 
-              v-model="form.ppn_rate" 
-              required 
-              class="block w-28 border border-slate-300 rounded-xl py-2 px-3 focus:outline-none focus:ring-2 focus:ring-rose-500/50 text-sm font-semibold" 
-            />
-            <span class="text-slate-600 font-semibold text-sm">%</span>
-          </div>
-        </div>
-
         <!-- Submit Button -->
         <div class="pt-5 flex justify-end border-t border-slate-100">
           <button 
@@ -157,8 +141,7 @@ const form = ref({
   npwp: '31.456.789.0-604.000',
   address: 'Jl. Perdagangan Raya No. 88, Jawa Timur',
   bank_info: 'BCA: 8870-123-456 a/n UD DUO SRIKANDI\nBRI: 0123-01-000456-50-1 a/n UD DUO SRIKANDI',
-  invoice_footer: 'Barang yang sudah dibeli tidak dapat ditukar/dikembalikan kecuali ada perjanjian tertulis sebelumnya.',
-  ppn_rate: 11
+  invoice_footer: 'Barang yang sudah dibeli tidak dapat ditukar/dikembalikan kecuali ada perjanjian tertulis sebelumnya.'
 })
 
 const fetchProfile = async () => {
@@ -172,8 +155,7 @@ const fetchProfile = async () => {
         npwp: res.data.npwp || '',
         address: res.data.address || '',
         bank_info: res.data.bank_info || '',
-        invoice_footer: res.data.invoice_footer || '',
-        ppn_rate: res.data.ppn_rate !== undefined ? res.data.ppn_rate : 11
+        invoice_footer: res.data.invoice_footer || ''
       }
     }
   } catch (error) {

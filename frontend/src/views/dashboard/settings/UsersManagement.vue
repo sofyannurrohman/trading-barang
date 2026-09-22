@@ -42,10 +42,31 @@
                 </span>
               </td>
               <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                <div class="flex items-center justify-end gap-3">
-                  <button v-if="!user.deleted_at" @click="openEditModal(user)" class="text-indigo-600 hover:text-indigo-900 font-semibold cursor-pointer">Edit</button>
-                  <button v-if="user.deleted_at" @click="restoreUser(user)" class="text-emerald-600 hover:text-emerald-900 font-semibold cursor-pointer">Pulihkan</button>
-                  <button v-else @click="openDeleteModal(user)" class="text-rose-600 hover:text-rose-900 font-semibold cursor-pointer">Hapus</button>
+                <div class="flex items-center justify-end gap-1.5">
+                  <button
+                    v-if="!user.deleted_at"
+                    @click="openEditModal(user)"
+                    class="p-1.5 text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded-md transition-colors cursor-pointer inline-flex items-center justify-center"
+                    title="Edit Pengguna"
+                  >
+                    <Pencil class="w-4 h-4" />
+                  </button>
+                  <button
+                    v-if="user.deleted_at"
+                    @click="restoreUser(user)"
+                    class="p-1.5 text-emerald-600 hover:text-emerald-800 hover:bg-emerald-50 rounded-md transition-colors cursor-pointer inline-flex items-center justify-center"
+                    title="Pulihkan Pengguna"
+                  >
+                    <RotateCcw class="w-4 h-4" />
+                  </button>
+                  <button
+                    v-else
+                    @click="openDeleteModal(user)"
+                    class="p-1.5 text-rose-600 hover:text-rose-800 hover:bg-rose-50 rounded-md transition-colors cursor-pointer inline-flex items-center justify-center"
+                    title="Hapus Pengguna"
+                  >
+                    <Trash2 class="w-4 h-4" />
+                  </button>
                 </div>
               </td>
             </tr>
@@ -126,6 +147,7 @@
 import { ref, onMounted } from 'vue'
 import api from '@/plugins/axios'
 import { toast } from 'vue-sonner'
+import { Pencil, Trash2, RotateCcw } from '@lucide/vue'
 
 interface User {
   ID: number

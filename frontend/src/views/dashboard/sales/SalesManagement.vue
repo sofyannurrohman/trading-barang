@@ -71,7 +71,7 @@
         <div class="min-w-0 flex-1">
           <p class="text-xs font-medium text-slate-500 truncate">Total Laba</p>
           <p class="text-lg font-bold text-slate-900 truncate">Rp {{ formatNumber(summary.totalProfit) }}</p>
-          <p class="text-xs text-slate-400">laba kotor (DPP - HPP)</p>
+          <p class="text-xs text-slate-400">laba kotor (Subtotal - HPP)</p>
         </div>
       </div>
     </div>
@@ -371,10 +371,6 @@
                 <span>Rp {{ formatNumber(cartTotal) }}</span>
               </div>
               <div class="flex justify-between text-slate-300">
-                <span>PPN (11%)</span>
-                <span>Rp {{ formatNumber(cartTotal * 0.11) }}</span>
-              </div>
-              <div class="flex justify-between text-slate-300">
                 <span>Ongkos Kirim</span>
                 <span>Rp {{ formatNumber(Number(createForm.shipping_cost) || 0) }}</span>
               </div>
@@ -458,13 +454,9 @@
                 <span class="text-slate-500">Tanggal</span>
                 <p class="font-medium text-slate-800">{{ formatDate(editingInvoice.CreatedAt) }}</p>
               </div>
-              <div>
-                <span class="text-slate-500">DPP</span>
+              <div class="col-span-2">
+                <span class="text-slate-500">Subtotal Produk</span>
                 <p class="font-medium text-slate-800">Rp {{ formatNumber(editingInvoice.total_dpp) }}</p>
-              </div>
-              <div>
-                <span class="text-slate-500">PPN</span>
-                <p class="font-medium text-slate-800">Rp {{ formatNumber(editingInvoice.total_ppn) }}</p>
               </div>
             </div>
 
@@ -498,7 +490,7 @@
               <span class="text-slate-400">Total Akhir (Baru)</span>
               <span class="font-bold text-indigo-400">
                 Rp {{ formatNumber(
-                  (editingInvoice.total_dpp + editingInvoice.total_ppn)
+                  editingInvoice.total_dpp
                   + Number(editForm.shipping_cost || 0)
                   - Number(editForm.discount || 0)
                 ) }}
@@ -763,10 +755,9 @@ const cartTotal = computed(() =>
   cart.value.reduce((s, i) => s + i.quantity * i.unit_price, 0)
 )
 const cartGrandTotal = computed(() => {
-  const ppn = cartTotal.value * 0.11
   const ship = Number(createForm.value.shipping_cost) || 0
   const disc = Number(createForm.value.discount) || 0
-  return cartTotal.value + ppn + ship - disc
+  return cartTotal.value + ship - disc
 })
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -862,6 +853,7 @@ const submitCreate = async () => {
   try {
     await api.post('/api/sales/invoice', {
       partner_id: Number(createForm.value.partner_id),
+      is_taxable: false,
       shipping_cost: Number(createForm.value.shipping_cost) || 0,
       discount: Number(createForm.value.discount) || 0,
       items: cart.value.map(i => ({
