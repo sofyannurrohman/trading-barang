@@ -15,8 +15,17 @@ import (
 // --- Product Controllers ---
 
 func GetProducts(c *gin.Context) {
+	status := c.Query("status") // "active", "trash", "all"
+	query := db.DB
+
+	if status == "trash" {
+		query = query.Unscoped().Where("deleted_at IS NOT NULL")
+	} else if status == "all" {
+		query = query.Unscoped()
+	}
+
 	var products []models.Product
-	if err := db.DB.Find(&products).Error; err != nil {
+	if err := query.Find(&products).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch products"})
 		return
 	}
@@ -60,6 +69,33 @@ func DeleteProduct(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "Product deleted successfully"})
+}
+
+func RestoreProduct(c *gin.Context) {
+	id := c.Param("id")
+	var product models.Product
+	if err := db.DB.Unscoped().First(&product, id).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Produk tidak ditemukan"})
+		return
+	}
+	if !product.DeletedAt.Valid {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Produk masih aktif"})
+		return
+	}
+
+	// Cek apakah ada produk aktif lain yang menggunakan SKU ini
+	var count int64
+	db.DB.Model(&models.Product{}).Where("sku = ?", product.SKU).Count(&count)
+	if count > 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Tidak dapat memulihkan produk: SKU sudah digunakan oleh produk aktif lain"})
+		return
+	}
+
+	if err := db.DB.Unscoped().Model(&product).Update("deleted_at", nil).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal memulihkan produk"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "Produk berhasil dipulihkan", "product": product})
 }
 
 func UploadProductImage(c *gin.Context) {
@@ -156,8 +192,15 @@ func UploadProductImage(c *gin.Context) {
 func GetPartners(c *gin.Context) {
 	var partners []models.Partner
 	partnerType := c.Query("type") // Optional filter by type (client/supplier)
+	status := c.Query("status")   // "active", "trash", "all"
 
 	query := db.DB
+	if status == "trash" {
+		query = query.Unscoped().Where("deleted_at IS NOT NULL")
+	} else if status == "all" {
+		query = query.Unscoped()
+	}
+
 	if partnerType != "" {
 		query = query.Where("type = ?", partnerType)
 	}
@@ -206,4 +249,23 @@ func DeletePartner(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "Partner deleted successfully"})
+}
+
+func RestorePartner(c *gin.Context) {
+	id := c.Param("id")
+	var partner models.Partner
+	if err := db.DB.Unscoped().First(&partner, id).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Mitra tidak ditemukan"})
+		return
+	}
+	if !partner.DeletedAt.Valid {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Mitra masih aktif"})
+		return
+	}
+
+	if err := db.DB.Unscoped().Model(&partner).Update("deleted_at", nil).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal memulihkan data mitra"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "Mitra berhasil dipulihkan", "partner": partner})
 }

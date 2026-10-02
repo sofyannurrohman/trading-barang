@@ -158,8 +158,19 @@ func CreateInvoice(c *gin.Context) {
 }
 
 func GetInvoices(c *gin.Context) {
+	status := c.Query("status") // "active", "trash", "all", "PAID", "UNPAID"
+	query := db.DB.Preload("Partner").Order("created_at desc")
+
+	if status == "trash" {
+		query = query.Unscoped().Where("deleted_at IS NOT NULL")
+	} else if status == "all" {
+		query = query.Unscoped()
+	} else if status == "PAID" || status == "UNPAID" {
+		query = query.Where("status = ?", status)
+	}
+
 	var invoices []models.Invoice
-	if err := db.DB.Preload("Partner").Order("created_at desc").Find(&invoices).Error; err != nil {
+	if err := query.Find(&invoices).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch invoices"})
 		return
 	}
@@ -169,7 +180,7 @@ func GetInvoices(c *gin.Context) {
 func GetInvoiceDetails(c *gin.Context) {
 	id := c.Param("id")
 	var invoice models.Invoice
-	if err := db.DB.Preload("Partner").Preload("Items").Preload("Items.Product").First(&invoice, id).Error; err != nil {
+	if err := db.DB.Unscoped().Preload("Partner").Preload("Items").Preload("Items.Product").First(&invoice, id).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Invoice not found"})
 		return
 	}
@@ -263,7 +274,19 @@ func RestoreInvoice(c *gin.Context) {
 	}
 
 	tx := db.DB.Begin()
+	// Verifikasi ketersediaan stok seluruh item terlebih dahulu sebelum pemotongan
 	for _, item := range invoice.Items {
+		var product models.Product
+		if err := tx.First(&product, item.ProductID).Error; err != nil {
+			tx.Rollback()
+			c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("Produk ID %d tidak ditemukan atau sudah terhapus permanen", item.ProductID)})
+			return
+		}
+		if product.CurrentStock < item.Quantity {
+			tx.Rollback()
+			c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("Stok produk '%s' tidak mencukupi untuk memulihkan faktur (stok saat ini: %d, dibutuhkan: %d)", product.Name, product.CurrentStock, item.Quantity)})
+			return
+		}
 		if err := tx.Model(&models.Product{}).Where("id = ?", item.ProductID).
 			UpdateColumn("current_stock", gorm.Expr("current_stock - ?", item.Quantity)).Error; err != nil {
 			tx.Rollback()
@@ -283,5 +306,5 @@ func RestoreInvoice(c *gin.Context) {
 		return
 	}
 	tx.Commit()
-	c.JSON(http.StatusOK, gin.H{"message": "Invoice berhasil dipulihkan"})
+	c.JSON(http.StatusOK, gin.H{"message": "Invoice berhasil dipulihkan", "invoice": invoice})
 }

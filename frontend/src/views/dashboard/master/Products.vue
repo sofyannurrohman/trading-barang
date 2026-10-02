@@ -76,44 +76,68 @@
       </div>
     </div>
 
-    <!-- Filter Bar -->
-    <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4 flex flex-wrap gap-3 items-center">
-      <div class="flex-1 min-w-48">
-        <div class="relative">
-          <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-          </svg>
-          <input
-            v-model="searchQuery"
-            type="text"
-            placeholder="Cari SKU atau nama produk..."
-            class="pl-9 pr-3 py-2 w-full border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-          />
-        </div>
-      </div>
-      <div class="flex gap-2 flex-wrap">
-        <select
-          v-model="filterCategory"
-          class="px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-        >
-          <option value="">Semua Kategori</option>
-          <option v-for="cat in uniqueCategories" :key="cat" :value="cat">{{ cat }}</option>
-        </select>
-        <select
-          v-model="filterStock"
-          class="px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-        >
-          <option value="">Semua Stok</option>
-          <option value="low">Stok Rendah (&lt; 10)</option>
-          <option value="empty">Stok Kosong (= 0)</option>
-          <option value="available">Tersedia (&gt; 0)</option>
-        </select>
+    <!-- Tab Navigation & Filter Bar -->
+    <div class="space-y-4">
+      <div class="flex items-center gap-2 border-b border-slate-200">
         <button
-          @click="resetFilters"
-          class="px-3 py-2 text-sm text-slate-600 border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors"
+          @click="activeTab = 'active'"
+          class="pb-3 px-4 text-sm font-semibold transition-colors border-b-2 flex items-center gap-2 cursor-pointer"
+          :class="activeTab === 'active' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-slate-500 hover:text-slate-700'"
         >
-          Reset
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+          </svg>
+          Produk Aktif
         </button>
+        <button
+          @click="activeTab = 'trash'"
+          class="pb-3 px-4 text-sm font-semibold transition-colors border-b-2 flex items-center gap-2 cursor-pointer"
+          :class="activeTab === 'trash' ? 'border-rose-600 text-rose-600' : 'border-transparent text-slate-500 hover:text-slate-700'"
+        >
+          <RotateCcw class="w-4 h-4" />
+          Kotak Sampah (Terhapus)
+        </button>
+      </div>
+
+      <!-- Filter Bar -->
+      <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4 flex flex-wrap gap-3 items-center">
+        <div class="flex-1 min-w-48">
+          <div class="relative">
+            <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            <input
+              v-model="searchQuery"
+              type="text"
+              placeholder="Cari SKU atau nama produk..."
+              class="pl-9 pr-3 py-2 w-full border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+            />
+          </div>
+        </div>
+        <div class="flex gap-2 flex-wrap">
+          <select
+            v-model="filterCategory"
+            class="px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          >
+            <option value="">Semua Kategori</option>
+            <option v-for="cat in uniqueCategories" :key="cat" :value="cat">{{ cat }}</option>
+          </select>
+          <select
+            v-model="filterStock"
+            class="px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          >
+            <option value="">Semua Stok</option>
+            <option value="low">Stok Rendah (&lt; 10)</option>
+            <option value="empty">Stok Kosong (= 0)</option>
+            <option value="available">Tersedia (&gt; 0)</option>
+          </select>
+          <button
+            @click="resetFilters"
+            class="px-3 py-2 text-sm text-slate-600 border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors cursor-pointer"
+          >
+            Reset
+          </button>
+        </div>
       </div>
     </div>
 
@@ -130,12 +154,13 @@
               <th class="px-4 py-3 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider">Harga Standar</th>
               <th class="px-4 py-3 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider">HPP Rata-rata</th>
               <th class="px-4 py-3 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider">Stok</th>
+              <th v-if="activeTab === 'trash'" class="px-4 py-3 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider">Status</th>
               <th class="px-4 py-3 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider">Aksi</th>
             </tr>
           </thead>
           <tbody class="bg-white divide-y divide-slate-100">
             <tr v-if="loading">
-              <td colspan="8" class="px-4 py-10 text-center">
+              <td :colspan="activeTab === 'trash' ? 9 : 8" class="px-4 py-10 text-center">
                 <div class="flex flex-col items-center gap-2 text-slate-400">
                   <svg class="animate-spin w-6 h-6" fill="none" viewBox="0 0 24 24">
                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -146,8 +171,8 @@
               </td>
             </tr>
             <tr v-else-if="paginatedProducts.length === 0">
-              <td colspan="8" class="px-4 py-10 text-center text-slate-400 text-sm">
-                Tidak ada data produk yang ditemukan.
+              <td :colspan="activeTab === 'trash' ? 9 : 8" class="px-4 py-10 text-center text-slate-400 text-sm">
+                {{ activeTab === 'trash' ? 'Tidak ada produk di kotak sampah.' : 'Tidak ada data produk yang ditemukan.' }}
               </td>
             </tr>
             <tr
@@ -155,6 +180,7 @@
               v-for="product in paginatedProducts"
               :key="product.ID"
               class="hover:bg-slate-50 transition-colors"
+              :class="activeTab === 'trash' ? 'bg-slate-50/40 opacity-80' : ''"
             >
               <!-- Foto Thumbnail -->
               <td class="px-4 py-3 whitespace-nowrap">
@@ -192,26 +218,43 @@
                   {{ product.current_stock }}
                 </span>
               </td>
+              <td v-if="activeTab === 'trash'" class="px-4 py-3 whitespace-nowrap text-center text-xs">
+                <span class="px-2.5 py-0.5 rounded-full font-semibold bg-rose-100 text-rose-700">
+                  Terhapus
+                </span>
+              </td>
               <td class="px-4 py-3 whitespace-nowrap text-right text-sm font-medium">
                 <div class="flex items-center justify-end gap-2">
-                  <button
-                    @click="openEditModal(product)"
-                    class="p-1.5 text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded-md transition-colors"
-                    title="Edit Produk"
-                  >
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                    </svg>
-                  </button>
-                  <button
-                    @click="openDeleteModal(product)"
-                    class="p-1.5 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-md transition-colors"
-                    title="Hapus Produk"
-                  >
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                    </svg>
-                  </button>
+                  <template v-if="activeTab === 'active'">
+                    <button
+                      @click="openEditModal(product)"
+                      class="p-1.5 text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded-md transition-colors cursor-pointer"
+                      title="Edit Produk"
+                    >
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      </svg>
+                    </button>
+                    <button
+                      @click="openDeleteModal(product)"
+                      class="p-1.5 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-md transition-colors cursor-pointer"
+                      title="Hapus Produk"
+                    >
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </button>
+                  </template>
+                  <template v-else>
+                    <button
+                      @click="openRestoreModal(product)"
+                      class="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg transition-colors cursor-pointer"
+                      title="Pulihkan Produk"
+                    >
+                      <RotateCcw class="w-3.5 h-3.5" />
+                      Pulihkan
+                    </button>
+                  </template>
                 </div>
               </td>
             </tr>
@@ -228,7 +271,7 @@
           <button
             @click="currentPage--"
             :disabled="currentPage <= 1"
-            class="px-3 py-1 text-sm border border-slate-300 rounded-md disabled:opacity-40 disabled:cursor-not-allowed hover:bg-white transition-colors"
+            class="px-3 py-1 text-sm border border-slate-300 rounded-md disabled:opacity-40 disabled:cursor-not-allowed hover:bg-white transition-colors cursor-pointer"
           >
             ‹
           </button>
@@ -236,7 +279,7 @@
             v-for="page in totalPages"
             :key="page"
             @click="currentPage = page"
-            class="px-3 py-1 text-sm border rounded-md transition-colors"
+            class="px-3 py-1 text-sm border rounded-md transition-colors cursor-pointer"
             :class="currentPage === page ? 'bg-indigo-600 text-white border-indigo-600' : 'border-slate-300 hover:bg-white'"
           >
             {{ page }}
@@ -244,7 +287,7 @@
           <button
             @click="currentPage++"
             :disabled="currentPage >= totalPages"
-            class="px-3 py-1 text-sm border border-slate-300 rounded-md disabled:opacity-40 disabled:cursor-not-allowed hover:bg-white transition-colors"
+            class="px-3 py-1 text-sm border border-slate-300 rounded-md disabled:opacity-40 disabled:cursor-not-allowed hover:bg-white transition-colors cursor-pointer"
           >
             ›
           </button>
@@ -462,7 +505,7 @@
               </div>
               <div>
                 <h3 class="text-lg font-bold text-red-800">Hapus Produk</h3>
-                <p class="text-sm text-red-600 mt-0.5">Tindakan ini tidak dapat dibatalkan.</p>
+                <p class="text-sm text-red-600 mt-0.5">Produk akan dipindahkan ke Kotak Sampah.</p>
               </div>
             </div>
           </div>
@@ -491,25 +534,19 @@
 
             <!-- Dampak Penghapusan -->
             <div class="bg-amber-50 border border-amber-200 rounded-xl p-4">
-              <p class="text-xs font-semibold text-amber-700 uppercase tracking-wide mb-2">⚠ Dampak Penghapusan</p>
+              <p class="text-xs font-semibold text-amber-700 uppercase tracking-wide mb-2">⚠ Catatan Penghapusan</p>
               <ul class="text-sm text-amber-800 space-y-1.5">
                 <li class="flex items-start gap-2">
                   <svg class="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
                   </svg>
-                  <span>Produk akan dihapus dari master data secara permanen.</span>
+                  <span>Produk akan dipindahkan ke <strong>Kotak Sampah</strong> dan dapat dipulihkan sewaktu-waktu.</span>
                 </li>
                 <li class="flex items-start gap-2">
                   <svg class="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
                   </svg>
-                  <span>Produk ini tidak akan bisa lagi dipilih saat membuat faktur penjualan baru.</span>
-                </li>
-                <li v-if="deletingProduct.current_stock > 0" class="flex items-start gap-2 font-medium text-red-700">
-                  <svg class="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
-                  </svg>
-                  <span>Masih ada stok {{ deletingProduct.current_stock }} unit! Pastikan Anda sudah menyesuaikan stok atau menghabiskannya.</span>
+                  <span>Produk yang terhapus tidak akan muncul pada formulir pembuatan faktur baru.</span>
                 </li>
               </ul>
             </div>
@@ -518,15 +555,65 @@
           </div>
 
           <div class="px-6 py-4 border-t border-slate-200 flex justify-end gap-3">
-            <button @click="isDeleteModalOpen = false" class="px-4 py-2 text-sm font-medium text-slate-700 border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors">
+            <button @click="isDeleteModalOpen = false" class="px-4 py-2 text-sm font-medium text-slate-700 border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors cursor-pointer">
               Batal
             </button>
             <button
               @click="submitDelete"
               :disabled="deleteLoading"
-              class="px-5 py-2 text-sm font-semibold bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 transition-colors"
+              class="px-5 py-2 text-sm font-semibold bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 transition-colors cursor-pointer"
             >
               {{ deleteLoading ? 'Menghapus...' : 'Ya, Hapus Produk' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================== -->
+    <!-- MODAL: PULIHKAN PRODUK         -->
+    <!-- ============================== -->
+    <div v-if="isRestoreModalOpen && restoringProduct" class="fixed inset-0 z-50 overflow-y-auto">
+      <div class="flex items-center justify-center min-h-screen px-4">
+        <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm" @click="isRestoreModalOpen = false"></div>
+        <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-md z-10">
+          <div class="px-6 pt-6 pb-4 border-b border-emerald-100 bg-emerald-50 rounded-t-2xl">
+            <div class="flex items-start gap-3">
+              <div class="flex-shrink-0 w-10 h-10 bg-emerald-100 border border-emerald-200 rounded-xl flex items-center justify-center text-emerald-600">
+                <RotateCcw class="w-5 h-5" />
+              </div>
+              <div>
+                <h3 class="text-lg font-bold text-emerald-900">Pulihkan Produk</h3>
+                <p class="text-sm text-emerald-700 mt-0.5">Kembalikan produk ke data master aktif.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="px-6 py-5 space-y-4">
+            <p class="text-sm text-slate-600">
+              Apakah Anda yakin ingin memulihkan produk <strong>{{ restoringProduct.name }}</strong> (SKU: <span class="font-mono text-indigo-600">{{ restoringProduct.sku }}</span>)?
+            </p>
+            <div class="bg-slate-50 rounded-xl p-3 border border-slate-200 text-xs text-slate-500 space-y-1">
+              <p>• Produk akan kembali dapat dipilih pada transaksi dan manajemen stok.</p>
+              <p>• Riwayat data dan foto produk sebelumnya akan dipulihkan utuh.</p>
+            </div>
+            <p v-if="restoreError" class="text-red-600 text-sm bg-red-50 border border-red-200 rounded-lg p-3">{{ restoreError }}</p>
+          </div>
+
+          <div class="px-6 py-4 border-t border-slate-200 flex justify-end gap-3">
+            <button @click="isRestoreModalOpen = false" class="px-4 py-2 text-sm font-medium text-slate-700 border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors cursor-pointer">
+              Batal
+            </button>
+            <button
+              @click="submitRestore"
+              :disabled="restoreLoading"
+              class="px-5 py-2 text-sm font-semibold bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 disabled:opacity-50 transition-colors cursor-pointer flex items-center gap-2"
+            >
+              <svg v-if="restoreLoading" class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+              </svg>
+              {{ restoreLoading ? 'Memulihkan...' : 'Ya, Pulihkan' }}
             </button>
           </div>
         </div>
@@ -539,7 +626,7 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import api from '@/plugins/axios'
 import { toast } from 'vue-sonner'
-import { ImagePlus, ImageOff, Camera, X, Check } from '@lucide/vue'
+import { ImagePlus, ImageOff, Camera, X, Check, RotateCcw } from '@lucide/vue'
 
 // ─── Config ───────────────────────────────────────────────────────────────────
 const apiBase = 'http://localhost:8080'
@@ -554,9 +641,13 @@ interface Product {
   average_hpp: number
   current_stock: number
   image_url?: string
+  CreatedAt?: string
+  UpdatedAt?: string
+  DeletedAt?: any
 }
 
 // ─── State ────────────────────────────────────────────────────────────────────
+const activeTab = ref<'active' | 'trash'>('active')
 const products = ref<Product[]>([])
 const loading = ref(false)
 
@@ -595,6 +686,12 @@ const isDeleteModalOpen = ref(false)
 const deleteLoading = ref(false)
 const deletingProduct = ref<Product | null>(null)
 const deleteError = ref('')
+
+// Restore Modal
+const isRestoreModalOpen = ref(false)
+const restoreLoading = ref(false)
+const restoringProduct = ref<Product | null>(null)
+const restoreError = ref('')
 
 // ─── Computed ────────────────────────────────────────────────────────────────
 const uniqueCategories = computed(() => {
@@ -717,7 +814,7 @@ const clearImage = () => {
 const fetchProducts = async () => {
   loading.value = true
   try {
-    const res = await api.get('/api/products')
+    const res = await api.get(`/api/products?status=${activeTab.value}`)
     products.value = res.data ?? []
   } catch (error) {
     console.error('Failed to fetch products', error)
@@ -836,7 +933,7 @@ const submitDelete = async () => {
     // Tutup modal terlebih dahulu
     isDeleteModalOpen.value = false
     // Tampilkan toast setelah modal tertutup agar tidak terhalangi backdrop
-    toast.success('Produk berhasil dihapus')
+    toast.success('Produk berhasil dipindahkan ke kotak sampah')
     await fetchProducts()
   } catch (error: any) {
     console.error('Failed to delete product', error)
@@ -847,6 +944,39 @@ const submitDelete = async () => {
     deleteLoading.value = false
   }
 }
+
+// ─── Restore ──────────────────────────────────────────────────────────────────
+const openRestoreModal = (product: Product) => {
+  restoringProduct.value = product
+  restoreError.value = ''
+  isRestoreModalOpen.value = true
+}
+
+const submitRestore = async () => {
+  if (!restoringProduct.value?.ID) return
+  restoreLoading.value = true
+  restoreError.value = ''
+  const prodName = restoringProduct.value.name
+  try {
+    await api.post(`/api/products/${restoringProduct.value.ID}/restore`, {}, { skipToast: true } as any)
+    isRestoreModalOpen.value = false
+    toast.success(`Produk "${prodName}" berhasil dipulihkan`)
+    await fetchProducts()
+  } catch (error: any) {
+    console.error('Failed to restore product', error)
+    const errMsg = error.response?.data?.error ?? 'Gagal memulihkan produk.'
+    restoreError.value = errMsg
+    toast.error(errMsg)
+  } finally {
+    restoreLoading.value = false
+  }
+}
+
+// Watch active tab to refresh list
+watch(activeTab, () => {
+  currentPage.value = 1
+  fetchProducts()
+})
 
 // ─── Init ─────────────────────────────────────────────────────────────────────
 onMounted(() => {

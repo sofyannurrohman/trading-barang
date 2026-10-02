@@ -49,6 +49,7 @@ func main() {
 		api.POST("/products", controllers.CreateProduct)
 		api.PUT("/products/:id", controllers.UpdateProduct)
 		api.DELETE("/products/:id", controllers.DeleteProduct)
+		api.POST("/products/:id/restore", controllers.RestoreProduct)
 		api.POST("/products/:id/image", controllers.UploadProductImage)
 
 		// Master Data - Partners
@@ -56,6 +57,7 @@ func main() {
 		api.POST("/partners", controllers.CreatePartner)
 		api.PUT("/partners/:id", controllers.UpdatePartner)
 		api.DELETE("/partners/:id", controllers.DeletePartner)
+		api.POST("/partners/:id/restore", controllers.RestorePartner)
 
 		// Inventory
 		api.POST("/inventory/inbound", controllers.CreateInbound)

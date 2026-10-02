@@ -13,6 +13,35 @@
       </button>
     </div>
 
+    <!-- Tab Navigation -->
+    <div class="flex items-center gap-2 border-b border-slate-200">
+      <button
+        @click="activeTab = 'active'"
+        class="pb-3 px-4 text-sm font-semibold transition-colors border-b-2 flex items-center gap-2 cursor-pointer"
+        :class="activeTab === 'active' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-slate-500 hover:text-slate-700'"
+      >
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+        </svg>
+        Pengguna Aktif
+      </button>
+      <button
+        @click="activeTab = 'trash'"
+        class="pb-3 px-4 text-sm font-semibold transition-colors border-b-2 flex items-center gap-2 cursor-pointer"
+        :class="activeTab === 'trash' ? 'border-rose-600 text-rose-600' : 'border-transparent text-slate-500 hover:text-slate-700'"
+      >
+        <RotateCcw class="w-4 h-4" />
+        Kotak Sampah (Terhapus)
+      </button>
+      <button
+        @click="activeTab = 'all'"
+        class="pb-3 px-4 text-sm font-semibold transition-colors border-b-2 flex items-center gap-2 cursor-pointer"
+        :class="activeTab === 'all' ? 'border-slate-800 text-slate-800' : 'border-transparent text-slate-500 hover:text-slate-700'"
+      >
+        Semua Pengguna
+      </button>
+    </div>
+
     <!-- Table Container with Horizontal Scroll for Mobile -->
     <div class="bg-white shadow rounded-xl border border-slate-200 overflow-hidden">
       <div class="overflow-x-auto">
@@ -22,23 +51,34 @@
               <th class="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Username</th>
               <th class="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Email</th>
               <th class="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Role</th>
+              <th class="px-4 sm:px-6 py-3 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider">Status</th>
               <th class="px-4 sm:px-6 py-3 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider">Aksi</th>
             </tr>
           </thead>
           <tbody class="bg-white divide-y divide-slate-100">
             <tr v-if="loading">
-              <td colspan="4" class="px-6 py-8 text-center text-slate-400 text-sm">Memuat data pengguna...</td>
+              <td colspan="5" class="px-6 py-8 text-center text-slate-400 text-sm">Memuat data pengguna...</td>
             </tr>
-            <tr v-else-if="users.length === 0">
-              <td colspan="4" class="px-6 py-8 text-center text-slate-400 text-sm">Belum ada pengguna.</td>
+            <tr v-else-if="filteredUsers.length === 0">
+              <td colspan="5" class="px-6 py-8 text-center text-slate-400 text-sm">
+                {{ activeTab === 'trash' ? 'Tidak ada pengguna di kotak sampah.' : 'Belum ada pengguna.' }}
+              </td>
             </tr>
-            <tr v-else v-for="user in users" :key="user.ID" class="hover:bg-slate-50/60 transition-colors">
+            <tr v-else v-for="user in filteredUsers" :key="user.ID" class="hover:bg-slate-50/60 transition-colors" :class="user.deleted_at ? 'bg-slate-50/50 opacity-80' : ''">
               <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-sm font-semibold text-slate-900">{{ user.username }}</td>
               <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-slate-500">{{ user.email || '-' }}</td>
               <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-sm">
                 <span class="px-2.5 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full capitalize" 
                   :class="user.role === 'admin' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'">
                   {{ user.role }}
+                </span>
+              </td>
+              <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-center text-xs">
+                <span v-if="user.deleted_at" class="px-2.5 py-0.5 inline-flex font-semibold rounded-full bg-rose-100 text-rose-700">
+                  Terhapus
+                </span>
+                <span v-else class="px-2.5 py-0.5 inline-flex font-semibold rounded-full bg-emerald-100 text-emerald-800">
+                  Aktif
                 </span>
               </td>
               <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
@@ -53,11 +93,12 @@
                   </button>
                   <button
                     v-if="user.deleted_at"
-                    @click="restoreUser(user)"
-                    class="p-1.5 text-emerald-600 hover:text-emerald-800 hover:bg-emerald-50 rounded-md transition-colors cursor-pointer inline-flex items-center justify-center"
+                    @click="openRestoreModal(user)"
+                    class="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg transition-colors cursor-pointer"
                     title="Pulihkan Pengguna"
                   >
-                    <RotateCcw class="w-4 h-4" />
+                    <RotateCcw class="w-3.5 h-3.5" />
+                    Pulihkan
                   </button>
                   <button
                     v-else
@@ -129,7 +170,7 @@
             </svg>
           </div>
           <h3 class="text-lg font-bold text-slate-900 mb-2">Hapus Pengguna</h3>
-          <p class="text-sm text-slate-500 mb-6">Apakah Anda yakin ingin menghapus <b>{{ deletingUser.username }}</b>? Tindakan ini tidak dapat dibatalkan.</p>
+          <p class="text-sm text-slate-500 mb-6">Pengguna <b>{{ deletingUser.username }}</b> akan dipindahkan ke Kotak Sampah.</p>
           <div class="flex justify-center gap-3">
             <button @click="isDeleteModalOpen = false" class="px-4 py-2 text-sm font-medium border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors cursor-pointer">Batal</button>
             <button @click="submitDelete" :disabled="deleteLoading" class="px-4 py-2 text-sm font-medium bg-rose-600 text-white rounded-lg hover:bg-rose-700 transition-colors disabled:opacity-50 cursor-pointer">
@@ -140,11 +181,31 @@
       </div>
     </div>
 
+    <!-- RESTORE MODAL -->
+    <div v-if="isRestoreModalOpen && restoringUser" class="fixed inset-0 z-50 overflow-y-auto">
+      <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm" @click="isRestoreModalOpen = false"></div>
+        <div class="relative bg-white rounded-2xl shadow-xl w-full max-w-sm z-10 p-6 text-center">
+          <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-emerald-100 text-emerald-600 mb-4">
+            <RotateCcw class="w-6 h-6" />
+          </div>
+          <h3 class="text-lg font-bold text-slate-900 mb-2">Pulihkan Pengguna</h3>
+          <p class="text-sm text-slate-500 mb-6">Apakah Anda yakin ingin mengembalikan akses pengguna <b>{{ restoringUser.username }}</b>?</p>
+          <div class="flex justify-center gap-3">
+            <button @click="isRestoreModalOpen = false" class="px-4 py-2 text-sm font-medium border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors cursor-pointer">Batal</button>
+            <button @click="submitRestore" :disabled="restoreLoading" class="px-4 py-2 text-sm font-medium bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors disabled:opacity-50 cursor-pointer">
+              {{ restoreLoading ? 'Memulihkan...' : 'Ya, Pulihkan' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import api from '@/plugins/axios'
 import { toast } from 'vue-sonner'
 import { Pencil, Trash2, RotateCcw } from '@lucide/vue'
@@ -157,6 +218,7 @@ interface User {
   deleted_at?: string | null
 }
 
+const activeTab = ref<'active' | 'trash' | 'all'>('active')
 const users = ref<User[]>([])
 const loading = ref(false)
 
@@ -175,6 +237,20 @@ const form = ref({
 const isDeleteModalOpen = ref(false)
 const deleteLoading = ref(false)
 const deletingUser = ref<User | null>(null)
+
+const isRestoreModalOpen = ref(false)
+const restoreLoading = ref(false)
+const restoringUser = ref<User | null>(null)
+
+const filteredUsers = computed(() => {
+  if (activeTab.value === 'trash') {
+    return users.value.filter(u => !!u.deleted_at)
+  }
+  if (activeTab.value === 'active') {
+    return users.value.filter(u => !u.deleted_at)
+  }
+  return users.value
+})
 
 const fetchUsers = async () => {
   loading.value = true
@@ -251,7 +327,7 @@ const submitDelete = async () => {
   try {
     await api.delete(`/api/settings/users/${deletingUser.value.ID}`, { skipToast: true } as any)
     isDeleteModalOpen.value = false
-    toast.success(`Pengguna ${deletedUsername} berhasil dihapus`)
+    toast.success(`Pengguna ${deletedUsername} berhasil dipindahkan ke kotak sampah`)
     await fetchUsers()
   } catch (error: any) {
     toast.error(error.response?.data?.error || 'Gagal menghapus pengguna.')
@@ -260,13 +336,24 @@ const submitDelete = async () => {
   }
 }
 
-const restoreUser = async (user: User) => {
+const openRestoreModal = (user: User) => {
+  restoringUser.value = user
+  isRestoreModalOpen.value = true
+}
+
+const submitRestore = async () => {
+  if (!restoringUser.value) return
+  restoreLoading.value = true
+  const uName = restoringUser.value.username
   try {
-    await api.post(`/api/settings/users/${user.ID}/restore`, {}, { skipToast: true } as any)
-    toast.success(`Pengguna ${user.username} berhasil dipulihkan`)
+    await api.post(`/api/settings/users/${restoringUser.value.ID}/restore`, {}, { skipToast: true } as any)
+    isRestoreModalOpen.value = false
+    toast.success(`Pengguna ${uName} berhasil dipulihkan`)
     await fetchUsers()
   } catch (error: any) {
     toast.error(error.response?.data?.error || 'Gagal memulihkan pengguna.')
+  } finally {
+    restoreLoading.value = false
   }
 }
 

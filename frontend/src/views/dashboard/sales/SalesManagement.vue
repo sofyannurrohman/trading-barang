@@ -76,47 +76,71 @@
       </div>
     </div>
 
-    <!-- Filter Bar -->
-    <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4 flex flex-wrap gap-3 items-center">
-      <div class="flex-1 min-w-48">
-        <div class="relative">
-          <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-          </svg>
-          <input
-            v-model="searchQuery"
-            type="text"
-            placeholder="Cari no. faktur atau mitra..."
-            class="pl-9 pr-3 py-2 w-full border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-          />
-        </div>
-      </div>
-      <div class="flex gap-2 flex-wrap">
-        <input
-          v-model="filterDateFrom"
-          type="date"
-          class="px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-        />
-        <span class="self-center text-slate-400 text-sm">s/d</span>
-        <input
-          v-model="filterDateTo"
-          type="date"
-          class="px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-        />
-        <select
-          v-model="filterStatus"
-          class="px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-        >
-          <option value="">Semua Status</option>
-          <option value="UNPAID">UNPAID</option>
-          <option value="PAID">PAID</option>
-        </select>
+    <!-- Tab Navigation & Filter Bar -->
+    <div class="space-y-4">
+      <div class="flex items-center gap-2 border-b border-slate-200">
         <button
-          @click="resetFilters"
-          class="px-3 py-2 text-sm text-slate-600 border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors"
+          @click="activeTab = 'active'"
+          class="pb-3 px-4 text-sm font-semibold transition-colors border-b-2 flex items-center gap-2 cursor-pointer"
+          :class="activeTab === 'active' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-slate-500 hover:text-slate-700'"
         >
-          Reset
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+          Faktur Aktif
         </button>
+        <button
+          @click="activeTab = 'trash'"
+          class="pb-3 px-4 text-sm font-semibold transition-colors border-b-2 flex items-center gap-2 cursor-pointer"
+          :class="activeTab === 'trash' ? 'border-rose-600 text-rose-600' : 'border-transparent text-slate-500 hover:text-slate-700'"
+        >
+          <RotateCcw class="w-4 h-4" />
+          Kotak Sampah (Faktur Dihapus)
+        </button>
+      </div>
+
+      <!-- Filter Bar -->
+      <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4 flex flex-wrap gap-3 items-center">
+        <div class="flex-1 min-w-48">
+          <div class="relative">
+            <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            <input
+              v-model="searchQuery"
+              type="text"
+              placeholder="Cari no. faktur atau mitra..."
+              class="pl-9 pr-3 py-2 w-full border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+            />
+          </div>
+        </div>
+        <div class="flex gap-2 flex-wrap">
+          <input
+            v-model="filterDateFrom"
+            type="date"
+            class="px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          />
+          <span class="self-center text-slate-400 text-sm">s/d</span>
+          <input
+            v-model="filterDateTo"
+            type="date"
+            class="px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          />
+          <select
+            v-model="filterStatus"
+            class="px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          >
+            <option value="">Semua Status</option>
+            <option value="UNPAID">UNPAID</option>
+            <option value="PAID">PAID</option>
+          </select>
+          <button
+            @click="resetFilters"
+            class="px-3 py-2 text-sm text-slate-600 border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors cursor-pointer"
+          >
+            Reset
+          </button>
+        </div>
       </div>
     </div>
 
@@ -153,7 +177,7 @@
             </tr>
             <tr v-else-if="paginatedInvoices.length === 0">
               <td colspan="11" class="px-4 py-10 text-center text-slate-400 text-sm">
-                Tidak ada data transaksi yang ditemukan.
+                {{ activeTab === 'trash' ? 'Tidak ada faktur di kotak sampah.' : 'Tidak ada data transaksi yang ditemukan.' }}
               </td>
             </tr>
             <tr
@@ -161,6 +185,7 @@
               v-for="invoice in paginatedInvoices"
               :key="invoice.ID"
               class="hover:bg-slate-50 transition-colors"
+              :class="activeTab === 'trash' ? 'bg-slate-50/40 opacity-80' : ''"
             >
               <td class="px-4 py-3 whitespace-nowrap text-sm text-slate-600">{{ formatDate(invoice.CreatedAt) }}</td>
               <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-indigo-600">{{ invoice.invoice_number }}</td>
@@ -192,6 +217,13 @@
               </td>
               <td class="px-4 py-3 whitespace-nowrap text-sm text-center">
                 <span
+                  v-if="activeTab === 'trash'"
+                  class="px-2.5 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full bg-rose-100 text-rose-700"
+                >
+                  Dibatalkan / Terhapus
+                </span>
+                <span
+                  v-else
                   class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full"
                   :class="invoice.status === 'PAID' ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-700'"
                 >
@@ -210,24 +242,36 @@
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
                     </svg>
                   </a>
-                  <button
-                    @click="openEditModal(invoice)"
-                    class="p-1.5 text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded-md transition-colors"
-                    title="Edit Invoice"
-                  >
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                    </svg>
-                  </button>
-                  <button
-                    @click="openDeleteModal(invoice)"
-                    class="p-1.5 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-md transition-colors"
-                    title="Hapus Invoice"
-                  >
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                    </svg>
-                  </button>
+                  <template v-if="activeTab === 'active'">
+                    <button
+                      @click="openEditModal(invoice)"
+                      class="p-1.5 text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded-md transition-colors cursor-pointer"
+                      title="Edit Invoice"
+                    >
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      </svg>
+                    </button>
+                    <button
+                      @click="openDeleteModal(invoice)"
+                      class="p-1.5 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-md transition-colors cursor-pointer"
+                      title="Hapus Invoice"
+                    >
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </button>
+                  </template>
+                  <template v-else>
+                    <button
+                      @click="openRestoreModal(invoice)"
+                      class="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg transition-colors cursor-pointer"
+                      title="Pulihkan Faktur"
+                    >
+                      <RotateCcw class="w-3.5 h-3.5" />
+                      Pulihkan
+                    </button>
+                  </template>
                 </div>
               </td>
             </tr>
@@ -515,7 +559,7 @@
     </div>
 
     <!-- ============================== -->
-    <!-- MODAL: HAPUS INVOICE (Informatif) -->
+    <!-- MODAL: HAPUS INVOICE           -->
     <!-- ============================== -->
     <div v-if="isDeleteModalOpen && deletingInvoice" class="fixed inset-0 z-50 overflow-y-auto">
       <div class="flex items-center justify-center min-h-screen px-4">
@@ -530,8 +574,8 @@
                 </svg>
               </div>
               <div>
-                <h3 class="text-lg font-bold text-red-800">Hapus Invoice</h3>
-                <p class="text-sm text-red-600 mt-0.5">Tindakan ini tidak dapat dibatalkan.</p>
+                <h3 class="text-lg font-bold text-red-800">Hapus Faktur</h3>
+                <p class="text-sm text-red-600 mt-0.5">Faktur akan dipindahkan ke Kotak Sampah.</p>
               </div>
             </div>
           </div>
@@ -539,7 +583,7 @@
           <div class="px-6 py-5 space-y-4">
             <!-- Info Invoice -->
             <div class="bg-slate-50 rounded-xl p-4 border border-slate-200">
-              <p class="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Detail Invoice yang Akan Dihapus</p>
+              <p class="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Detail Faktur yang Akan Dihapus</p>
               <div class="grid grid-cols-2 gap-2 text-sm">
                 <div>
                   <span class="text-slate-500">No. Faktur</span>
@@ -562,25 +606,19 @@
 
             <!-- Dampak Penghapusan -->
             <div class="bg-amber-50 border border-amber-200 rounded-xl p-4">
-              <p class="text-xs font-semibold text-amber-700 uppercase tracking-wide mb-2">⚠ Dampak Penghapusan</p>
+              <p class="text-xs font-semibold text-amber-700 uppercase tracking-wide mb-2">⚠ Catatan Penghapusan</p>
               <ul class="text-sm text-amber-800 space-y-1.5">
                 <li class="flex items-start gap-2">
                   <svg class="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
                   </svg>
-                  <span>Invoice <strong>{{ deletingInvoice.invoice_number }}</strong> akan dihapus secara permanen.</span>
+                  <span>Faktur <strong>{{ deletingInvoice.invoice_number }}</strong> akan dipindahkan ke <strong>Kotak Sampah</strong>.</span>
                 </li>
                 <li class="flex items-start gap-2">
                   <svg class="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
                   </svg>
-                  <span>Stok <strong>{{ getTotalItems(deletingInvoice) }} unit produk</strong> akan dikembalikan ke gudang.</span>
-                </li>
-                <li class="flex items-start gap-2">
-                  <svg class="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-                  </svg>
-                  <span>Riwayat transaksi senilai <strong>Rp {{ formatNumber(deletingInvoice.grand_total) }}</strong> akan hilang dari laporan.</span>
+                  <span>Stok <strong>{{ getTotalItems(deletingInvoice) }} unit produk</strong> akan otomatis dikembalikan ke gudang.</span>
                 </li>
               </ul>
             </div>
@@ -589,15 +627,69 @@
           </div>
 
           <div class="px-6 py-4 border-t border-slate-200 flex justify-end gap-3">
-            <button @click="isDeleteModalOpen = false" class="px-4 py-2 text-sm font-medium text-slate-700 border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors">
+            <button @click="isDeleteModalOpen = false" class="px-4 py-2 text-sm font-medium text-slate-700 border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors cursor-pointer">
               Batal
             </button>
             <button
               @click="submitDelete"
               :disabled="deleteLoading"
-              class="px-5 py-2 text-sm font-semibold bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 transition-colors"
+              class="px-5 py-2 text-sm font-semibold bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 transition-colors cursor-pointer"
             >
-              {{ deleteLoading ? 'Menghapus...' : 'Ya, Hapus Invoice' }}
+              {{ deleteLoading ? 'Menghapus...' : 'Ya, Hapus Faktur' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================== -->
+    <!-- MODAL: PULIHKAN FAKTUR         -->
+    <!-- ============================== -->
+    <div v-if="isRestoreModalOpen && restoringInvoice" class="fixed inset-0 z-50 overflow-y-auto">
+      <div class="flex items-center justify-center min-h-screen px-4">
+        <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm" @click="isRestoreModalOpen = false"></div>
+        <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-md z-10">
+          <div class="px-6 pt-6 pb-4 border-b border-emerald-100 bg-emerald-50 rounded-t-2xl">
+            <div class="flex items-start gap-3">
+              <div class="flex-shrink-0 w-10 h-10 bg-emerald-100 border border-emerald-200 rounded-xl flex items-center justify-center text-emerald-600">
+                <RotateCcw class="w-5 h-5" />
+              </div>
+              <div>
+                <h3 class="text-lg font-bold text-emerald-900">Pulihkan Faktur Penjualan</h3>
+                <p class="text-sm text-emerald-700 mt-0.5">Kembalikan faktur dan kurangi stok gudang.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="px-6 py-5 space-y-4">
+            <p class="text-sm text-slate-600">
+              Apakah Anda yakin ingin memulihkan faktur <strong>{{ restoringInvoice.invoice_number }}</strong> ({{ restoringInvoice.partner?.name }})?
+            </p>
+
+            <!-- Warning tentang pemotongan stok -->
+            <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-3 text-xs text-emerald-800 space-y-1">
+              <p class="font-semibold text-emerald-900">⚡ Dampak Pemulihan:</p>
+              <p>• Stok produk akan <strong>dipotong kembali</strong> dari gudang sesuai kuantitas faktur.</p>
+              <p>• Transaksi penjualan akan kembali aktif di laporan dan rekapitulasi.</p>
+            </div>
+
+            <p v-if="restoreError" class="text-red-600 text-sm bg-red-50 border border-red-200 rounded-lg p-3">{{ restoreError }}</p>
+          </div>
+
+          <div class="px-6 py-4 border-t border-slate-200 flex justify-end gap-3">
+            <button @click="isRestoreModalOpen = false" class="px-4 py-2 text-sm font-medium text-slate-700 border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors cursor-pointer">
+              Batal
+            </button>
+            <button
+              @click="submitRestore"
+              :disabled="restoreLoading"
+              class="px-5 py-2 text-sm font-semibold bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 disabled:opacity-50 transition-colors flex items-center gap-2 cursor-pointer"
+            >
+              <svg v-if="restoreLoading" class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+              </svg>
+              {{ restoreLoading ? 'Memulihkan...' : 'Ya, Pulihkan Faktur' }}
             </button>
           </div>
         </div>
@@ -611,6 +703,7 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import api from '@/plugins/axios'
 import { toast } from 'vue-sonner'
+import { RotateCcw } from '@lucide/vue'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface Partner { ID: number; name: string; npwp: string; nik: string }
@@ -639,6 +732,7 @@ interface Invoice {
   discount: number
   status: string
   items?: InvoiceItem[]
+  DeletedAt?: any
 }
 
 interface CartItem {
@@ -649,6 +743,7 @@ interface CartItem {
 }
 
 // ─── State ────────────────────────────────────────────────────────────────────
+const activeTab = ref<'active' | 'trash'>('active')
 const invoices  = ref<Invoice[]>([])
 const partners  = ref<Partner[]>([])
 const products  = ref<Product[]>([])
@@ -683,6 +778,12 @@ const isDeleteModalOpen = ref(false)
 const deleteLoading     = ref(false)
 const deletingInvoice   = ref<Invoice | null>(null)
 const deleteError       = ref('')
+
+// Restore Modal
+const isRestoreModalOpen = ref(false)
+const restoreLoading     = ref(false)
+const restoringInvoice   = ref<Invoice | null>(null)
+const restoreError       = ref('')
 
 // ─── Computed ────────────────────────────────────────────────────────────────
 const filteredInvoices = computed(() => {
@@ -788,9 +889,9 @@ const fetchAll = async () => {
   loading.value = true
   try {
     const [invRes, partRes, prodRes] = await Promise.all([
-      api.get('/api/sales/invoices?include_items=true'),
-      api.get('/api/partners'),
-      api.get('/api/products'),
+      api.get(`/api/sales/invoices?status=${activeTab.value}`),
+      api.get('/api/partners?status=all'),
+      api.get('/api/products?status=all'),
     ])
     // Fetch detail (with items) for each invoice to get items for profit calc
     const basicInvoices: Invoice[] = invRes.data ?? []
@@ -923,7 +1024,7 @@ const submitDelete = async () => {
     await api.delete(`/api/sales/invoices/${deletingInvoice.value.ID}`, { skipToast: true } as any)
     // Tutup modal dulu, baru toast agar tidak terhalangi backdrop
     isDeleteModalOpen.value = false
-    toast.success(`Invoice ${invoiceNumber} berhasil dihapus`)
+    toast.success(`Invoice ${invoiceNumber} berhasil dipindahkan ke kotak sampah`)
     await fetchAll()
   } catch (err: any) {
     const errMsg = err.response?.data?.error ?? 'Gagal menghapus invoice.'
@@ -933,6 +1034,39 @@ const submitDelete = async () => {
     deleteLoading.value = false
   }
 }
+
+// ─── Restore ──────────────────────────────────────────────────────────────────
+const openRestoreModal = (invoice: Invoice) => {
+  restoringInvoice.value = invoice
+  restoreError.value = ''
+  isRestoreModalOpen.value = true
+}
+
+const submitRestore = async () => {
+  if (!restoringInvoice.value?.ID) return
+  restoreLoading.value = true
+  restoreError.value = ''
+  const invNumber = restoringInvoice.value.invoice_number
+  try {
+    await api.post(`/api/sales/invoices/${restoringInvoice.value.ID}/restore`, {}, { skipToast: true } as any)
+    isRestoreModalOpen.value = false
+    toast.success(`Faktur ${invNumber} berhasil dipulihkan`)
+    await fetchAll()
+  } catch (err: any) {
+    console.error('Failed to restore invoice', err)
+    const errMsg = err.response?.data?.error ?? 'Gagal memulihkan faktur.'
+    restoreError.value = errMsg
+    toast.error(errMsg)
+  } finally {
+    restoreLoading.value = false
+  }
+}
+
+// Watch active tab
+watch(activeTab, () => {
+  currentPage.value = 1
+  fetchAll()
+})
 
 // ─── Init ─────────────────────────────────────────────────────────────────────
 onMounted(fetchAll)

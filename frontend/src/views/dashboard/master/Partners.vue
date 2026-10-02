@@ -16,6 +16,28 @@
       </button>
     </div>
 
+    <!-- Tab Navigation -->
+    <div class="flex items-center gap-2 border-b border-slate-200">
+      <button
+        @click="activeTab = 'active'"
+        class="pb-3 px-4 text-sm font-semibold transition-colors border-b-2 flex items-center gap-2 cursor-pointer"
+        :class="activeTab === 'active' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-slate-500 hover:text-slate-700'"
+      >
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+        </svg>
+        Mitra Aktif
+      </button>
+      <button
+        @click="activeTab = 'trash'"
+        class="pb-3 px-4 text-sm font-semibold transition-colors border-b-2 flex items-center gap-2 cursor-pointer"
+        :class="activeTab === 'trash' ? 'border-rose-600 text-rose-600' : 'border-transparent text-slate-500 hover:text-slate-700'"
+      >
+        <RotateCcw class="w-4 h-4" />
+        Kotak Sampah (Terhapus)
+      </button>
+    </div>
+
     <!-- Table -->
     <div class="bg-white shadow-sm rounded-xl border border-slate-200 overflow-hidden">
       <div class="overflow-x-auto">
@@ -26,12 +48,13 @@
               <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Nama</th>
               <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">NPWP / NIK</th>
               <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Alamat</th>
+              <th v-if="activeTab === 'trash'" scope="col" class="px-6 py-3 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider">Status</th>
               <th scope="col" class="px-6 py-3 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider">Aksi</th>
             </tr>
           </thead>
           <tbody class="bg-white divide-y divide-slate-100">
             <tr v-if="loading">
-              <td colspan="5" class="px-6 py-10 text-center">
+              <td :colspan="activeTab === 'trash' ? 6 : 5" class="px-6 py-10 text-center">
                 <div class="flex flex-col items-center gap-2 text-slate-400">
                   <svg class="animate-spin w-6 h-6" fill="none" viewBox="0 0 24 24">
                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -42,11 +65,11 @@
               </td>
             </tr>
             <tr v-else-if="partners.length === 0">
-              <td colspan="5" class="px-6 py-10 text-center text-slate-400 text-sm">
-                Tidak ada mitra ditemukan.
+              <td :colspan="activeTab === 'trash' ? 6 : 5" class="px-6 py-10 text-center text-slate-400 text-sm">
+                {{ activeTab === 'trash' ? 'Tidak ada data mitra di kotak sampah.' : 'Tidak ada mitra ditemukan.' }}
               </td>
             </tr>
-            <tr v-else v-for="partner in partners" :key="partner.ID" class="hover:bg-slate-50 transition-colors">
+            <tr v-else v-for="partner in partners" :key="partner.ID" class="hover:bg-slate-50 transition-colors" :class="activeTab === 'trash' ? 'bg-slate-50/40 opacity-80' : ''">
               <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                 <span
                   :class="partner.type === 'client' ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800'"
@@ -62,26 +85,43 @@
                 <div v-else class="text-red-400 italic">Tidak ada</div>
               </td>
               <td class="px-6 py-4 text-sm text-slate-500 max-w-xs truncate">{{ partner.address }}</td>
+              <td v-if="activeTab === 'trash'" class="px-6 py-4 whitespace-nowrap text-center text-xs">
+                <span class="px-2.5 py-0.5 rounded-full font-semibold bg-rose-100 text-rose-700">
+                  Terhapus
+                </span>
+              </td>
               <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                 <div class="flex items-center justify-end gap-2">
-                  <button
-                    @click="openDialog(partner)"
-                    class="p-1.5 text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded-md transition-colors"
-                    title="Edit Mitra"
-                  >
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                    </svg>
-                  </button>
-                  <button
-                    @click="openDeleteConfirm(partner)"
-                    class="p-1.5 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-md transition-colors"
-                    title="Hapus Mitra"
-                  >
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                    </svg>
-                  </button>
+                  <template v-if="activeTab === 'active'">
+                    <button
+                      @click="openDialog(partner)"
+                      class="p-1.5 text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded-md transition-colors cursor-pointer"
+                      title="Edit Mitra"
+                    >
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      </svg>
+                    </button>
+                    <button
+                      @click="openDeleteConfirm(partner)"
+                      class="p-1.5 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-md transition-colors cursor-pointer"
+                      title="Hapus Mitra"
+                    >
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </button>
+                  </template>
+                  <template v-else>
+                    <button
+                      @click="openRestoreConfirm(partner)"
+                      class="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg transition-colors cursor-pointer"
+                      title="Pulihkan Mitra"
+                    >
+                      <RotateCcw class="w-3.5 h-3.5" />
+                      Pulihkan
+                    </button>
+                  </template>
                 </div>
               </td>
             </tr>
@@ -210,7 +250,7 @@
               </div>
               <div>
                 <h3 class="text-lg font-bold text-red-800">Hapus Mitra</h3>
-                <p class="text-sm text-red-600 mt-0.5">Tindakan ini tidak dapat dibatalkan.</p>
+                <p class="text-sm text-red-600 mt-0.5">Mitra akan dipindahkan ke Kotak Sampah.</p>
               </div>
             </div>
           </div>
@@ -218,9 +258,9 @@
           <!-- Body -->
           <div class="px-6 py-5">
             <p class="text-sm text-slate-700">
-              Anda akan menghapus mitra
-              <span class="font-semibold text-slate-900">{{ deletingPartnerName }}</span>.
-              Data ini akan dihapus secara permanen dari sistem.
+              Anda akan memindahkan mitra
+              <span class="font-semibold text-slate-900">{{ deletingPartnerName }}</span> ke Kotak Sampah.
+              Data ini dapat dipulihkan sewaktu-waktu jika diperlukan.
             </p>
           </div>
 
@@ -228,14 +268,14 @@
           <div class="px-6 py-4 border-t border-slate-200 flex justify-end gap-3">
             <button
               @click="isDeleteConfirmOpen = false"
-              class="px-4 py-2 text-sm font-medium text-slate-700 border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors"
+              class="px-4 py-2 text-sm font-medium text-slate-700 border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors cursor-pointer"
             >
               Batal
             </button>
             <button
               @click="submitDelete"
               :disabled="deleteLoading"
-              class="px-5 py-2 text-sm font-semibold bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 transition-colors flex items-center gap-2"
+              class="px-5 py-2 text-sm font-semibold bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 transition-colors flex items-center gap-2 cursor-pointer"
             >
               <svg v-if="deleteLoading" class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -247,13 +287,63 @@
         </div>
       </div>
     </div>
+
+    <!-- ============================== -->
+    <!-- MODAL: KONFIRMASI PULIHKAN     -->
+    <!-- ============================== -->
+    <div v-if="isRestoreConfirmOpen" class="fixed inset-0 z-50 overflow-y-auto">
+      <div class="flex items-center justify-center min-h-screen px-4">
+        <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm" @click="isRestoreConfirmOpen = false"></div>
+        <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm z-10">
+          <div class="px-6 pt-6 pb-4 border-b border-emerald-100 bg-emerald-50 rounded-t-2xl">
+            <div class="flex items-start gap-3">
+              <div class="flex-shrink-0 w-10 h-10 bg-emerald-100 border border-emerald-200 rounded-xl flex items-center justify-center text-emerald-600">
+                <RotateCcw class="w-5 h-5" />
+              </div>
+              <div>
+                <h3 class="text-lg font-bold text-emerald-900">Pulihkan Mitra</h3>
+                <p class="text-sm text-emerald-700 mt-0.5">Kembalikan data ke daftar mitra aktif.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="px-6 py-5">
+            <p class="text-sm text-slate-700">
+              Apakah Anda yakin ingin memulihkan mitra
+              <span class="font-semibold text-slate-900">{{ restoringPartnerName }}</span>?
+            </p>
+          </div>
+
+          <div class="px-6 py-4 border-t border-slate-200 flex justify-end gap-3">
+            <button
+              @click="isRestoreConfirmOpen = false"
+              class="px-4 py-2 text-sm font-medium text-slate-700 border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors cursor-pointer"
+            >
+              Batal
+            </button>
+            <button
+              @click="submitRestore"
+              :disabled="restoreLoading"
+              class="px-5 py-2 text-sm font-semibold bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 disabled:opacity-50 transition-colors flex items-center gap-2 cursor-pointer"
+            >
+              <svg v-if="restoreLoading" class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+              </svg>
+              {{ restoreLoading ? 'Memulihkan...' : 'Ya, Pulihkan' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import api from '@/plugins/axios'
 import { toast } from 'vue-sonner'
+import { RotateCcw } from '@lucide/vue'
 
 interface Partner {
   ID?: number
@@ -262,9 +352,13 @@ interface Partner {
   address: string
   npwp: string
   nik: string
+  CreatedAt?: string
+  UpdatedAt?: string
+  DeletedAt?: any
 }
 
 // ─── State ────────────────────────────────────────────────────────────────────
+const activeTab = ref<'active' | 'trash'>('active')
 const partners = ref<Partner[]>([])
 const loading = ref(false)
 
@@ -286,12 +380,18 @@ const deleteLoading = ref(false)
 const deletingPartnerId = ref<number | undefined>(undefined)
 const deletingPartnerName = ref('')
 
+// Restore Confirm Modal
+const isRestoreConfirmOpen = ref(false)
+const restoreLoading = ref(false)
+const restoringPartnerId = ref<number | undefined>(undefined)
+const restoringPartnerName = ref('')
+
 // ─── Fetch ────────────────────────────────────────────────────────────────────
 const fetchPartners = async () => {
   loading.value = true
   try {
-    const res = await api.get('/api/partners')
-    partners.value = res.data
+    const res = await api.get(`/api/partners?status=${activeTab.value}`)
+    partners.value = res.data ?? []
   } catch (error) {
     console.error('Failed to fetch partners', error)
   } finally {
@@ -359,7 +459,7 @@ const submitDelete = async () => {
     await api.delete(`/api/partners/${deletingPartnerId.value}`, { skipToast: true } as any)
     // Tutup modal dulu, baru tampilkan toast agar tidak terhalangi backdrop
     isDeleteConfirmOpen.value = false
-    toast.success('Mitra berhasil dihapus')
+    toast.success('Mitra berhasil dipindahkan ke kotak sampah')
     await fetchPartners()
   } catch (error: any) {
     console.error('Failed to delete partner', error)
@@ -368,6 +468,35 @@ const submitDelete = async () => {
     deleteLoading.value = false
   }
 }
+
+// ─── Restore ──────────────────────────────────────────────────────────────────
+const openRestoreConfirm = (partner: Partner) => {
+  restoringPartnerId.value = partner.ID
+  restoringPartnerName.value = partner.name
+  isRestoreConfirmOpen.value = true
+}
+
+const submitRestore = async () => {
+  if (!restoringPartnerId.value) return
+  restoreLoading.value = true
+  const pName = restoringPartnerName.value
+  try {
+    await api.post(`/api/partners/${restoringPartnerId.value}/restore`, {}, { skipToast: true } as any)
+    isRestoreConfirmOpen.value = false
+    toast.success(`Mitra "${pName}" berhasil dipulihkan`)
+    await fetchPartners()
+  } catch (error: any) {
+    console.error('Failed to restore partner', error)
+    toast.error(error.response?.data?.error ?? 'Gagal memulihkan data mitra.')
+  } finally {
+    restoreLoading.value = false
+  }
+}
+
+// Watch active tab
+watch(activeTab, () => {
+  fetchPartners()
+})
 
 // ─── Init ─────────────────────────────────────────────────────────────────────
 onMounted(() => {
