@@ -7,35 +7,87 @@ import (
 	"gorm.io/gorm"
 )
 
+// SeedActiveUsers ensures default test accounts (admin and staff) exist, are active, and have valid passwords.
+// If an account was previously soft-deleted, it is restored to active status.
+func SeedActiveUsers(d *gorm.DB) {
+	defaultUsers := []struct {
+		Username string
+		Email    string
+		Password string
+		Role     string
+	}{
+		{
+			Username: "admin",
+			Email:    "admin@tradingbarang.com",
+			Password: "password",
+			Role:     "admin",
+		},
+		{
+			Username: "staff",
+			Email:    "staff@tradingbarang.com",
+			Password: "password",
+			Role:     "user",
+		},
+	}
+
+	for _, u := range defaultUsers {
+		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(u.Password), bcrypt.DefaultCost)
+		if err != nil {
+			fmt.Printf("Failed to hash password for %s: %v\n", u.Username, err)
+			continue
+		}
+
+		var existing models.User
+		err = d.Unscoped().Where("username = ? OR email = ?", u.Username, u.Email).First(&existing).Error
+
+		if err == nil && existing.ID != 0 {
+			// Account exists (possibly deleted). Explicitly restore deleted_at and update credentials.
+			d.Unscoped().Model(&models.User{}).Where("id = ?", existing.ID).Update("deleted_at", nil)
+			d.Unscoped().Model(&models.User{}).Where("id = ?", existing.ID).Updates(map[string]interface{}{
+				"username": u.Username,
+				"email":    u.Email,
+				"password": string(hashedPassword),
+				"role":     u.Role,
+			})
+			fmt.Printf("[SEED] User '%s' (%s) ensured active and restored.\n", u.Username, u.Role)
+		} else {
+			// Account does not exist. Create new.
+			newUser := models.User{
+				Username: u.Username,
+				Email:    u.Email,
+				Password: string(hashedPassword),
+				Role:     u.Role,
+			}
+			if err := d.Create(&newUser).Error; err != nil {
+				fmt.Printf("[SEED] Failed to create user '%s': %v\n", u.Username, err)
+			} else {
+				fmt.Printf("[SEED] User '%s' (%s) created successfully.\n", u.Username, u.Role)
+			}
+		}
+	}
+}
+
 func RunAutoSeed() {
-	var count int64
-	DB.Model(&models.User{}).Count(&count)
-	if count > 0 {
-		fmt.Println("Database already contains users. Skipping auto-seed.")
+	// 1. Always ensure active test users exist & restored
+	SeedActiveUsers(DB)
+
+	// 2. Check if general master data already exists
+	var productCount int64
+	DB.Model(&models.Product{}).Count(&productCount)
+	if productCount > 0 {
+		fmt.Println("Database already contains master data. Skipping remaining auto-seed.")
 		return
 	}
 
-	fmt.Println("Running Auto-Seed...")
+	fmt.Println("Running Auto-Seed for master data & initial transactions...")
 
-	seedUser(DB)
 	seedCompanyProfile(DB)
 	partners := seedPartners(DB)
 	products := seedProducts(DB)
 	seedInventory(DB, products)
 	seedSales(DB, partners, products)
 
-	fmt.Println("Auto-Seed Complete! Admin credentials: admin / password")
-}
-
-func seedUser(d *gorm.DB) {
-	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte("password"), bcrypt.DefaultCost)
-	user := models.User{
-		Username: "admin",
-		Email:    "admin@tradingbarang.com",
-		Password: string(hashedPassword),
-		Role:     "admin",
-	}
-	d.Create(&user)
+	fmt.Println("Auto-Seed Complete! Ready to login with admin / password or staff / password")
 }
 
 func seedCompanyProfile(d *gorm.DB) {

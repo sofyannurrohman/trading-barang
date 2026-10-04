@@ -18,6 +18,9 @@ func main() {
 	// Initialize Database
 	db.InitDB()
 
+	// Always ensure default active accounts exist & are restored
+	db.SeedActiveUsers(db.DB)
+
 	if os.Getenv("AUTO_SEED") == "true" {
 		db.RunAutoSeed()
 	}
