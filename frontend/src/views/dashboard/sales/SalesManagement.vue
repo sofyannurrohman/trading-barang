@@ -702,7 +702,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
 import api from '@/plugins/axios'
-import { toast } from 'vue-sonner'
+import { notify } from '@/lib/notify'
 import { RotateCcw } from '@lucide/vue'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -962,15 +962,14 @@ const submitCreate = async () => {
         quantity: i.quantity,
         unit_price: i.unit_price,
       })),
-    }, { skipToast: true } as any)
-    // Tutup modal dulu, baru toast agar tidak terhalangi backdrop
+    })
     isCreateModalOpen.value = false
-    toast.success('Transaksi penjualan berhasil dibuat')
+    notify.success('Transaksi Berhasil', 'Faktur transaksi penjualan berhasil dibuat.')
     await fetchAll()
   } catch (err: any) {
     const errMsg = err.response?.data?.error ?? 'Gagal membuat transaksi.'
     createError.value = errMsg
-    toast.error(errMsg)
+    notify.error('Gagal Membuat Transaksi', errMsg)
   } finally {
     createLoading.value = false
   }
@@ -996,13 +995,12 @@ const submitEdit = async () => {
       status: editForm.value.status,
       shipping_cost: Number(editForm.value.shipping_cost) || 0,
       discount: Number(editForm.value.discount) || 0,
-    }, { skipToast: true } as any)
-    // Tutup modal dulu, baru toast agar tidak terhalangi backdrop
+    })
     isEditModalOpen.value = false
-    toast.success(`Invoice ${invoiceNumber} berhasil diperbarui`)
+    notify.success('Invoice Diperbarui', `Faktur ${invoiceNumber} berhasil diperbarui.`)
     await fetchAll()
   } catch (err: any) {
-    toast.error(err.response?.data?.error ?? 'Gagal memperbarui invoice.')
+    notify.error('Gagal Memperbarui', err.response?.data?.error ?? 'Gagal memperbarui invoice.')
   } finally {
     editLoading.value = false
   }
@@ -1021,15 +1019,14 @@ const submitDelete = async () => {
   deleteError.value = ''
   const invoiceNumber = deletingInvoice.value.invoice_number
   try {
-    await api.delete(`/api/sales/invoices/${deletingInvoice.value.ID}`, { skipToast: true } as any)
-    // Tutup modal dulu, baru toast agar tidak terhalangi backdrop
+    await api.delete(`/api/sales/invoices/${deletingInvoice.value.ID}`)
     isDeleteModalOpen.value = false
-    toast.success(`Invoice ${invoiceNumber} berhasil dipindahkan ke kotak sampah`)
+    notify.success('Invoice Dihapus', `Invoice ${invoiceNumber} berhasil dipindahkan ke kotak sampah`)
     await fetchAll()
   } catch (err: any) {
     const errMsg = err.response?.data?.error ?? 'Gagal menghapus invoice.'
     deleteError.value = errMsg
-    toast.error(errMsg)
+    notify.error('Gagal Menghapus', errMsg)
   } finally {
     deleteLoading.value = false
   }
@@ -1048,15 +1045,15 @@ const submitRestore = async () => {
   restoreError.value = ''
   const invNumber = restoringInvoice.value.invoice_number
   try {
-    await api.post(`/api/sales/invoices/${restoringInvoice.value.ID}/restore`, {}, { skipToast: true } as any)
+    await api.post(`/api/sales/invoices/${restoringInvoice.value.ID}/restore`, {})
     isRestoreModalOpen.value = false
-    toast.success(`Faktur ${invNumber} berhasil dipulihkan`)
+    notify.success('Faktur Dipulihkan', `Faktur ${invNumber} berhasil dipulihkan`)
     await fetchAll()
   } catch (err: any) {
     console.error('Failed to restore invoice', err)
     const errMsg = err.response?.data?.error ?? 'Gagal memulihkan faktur.'
     restoreError.value = errMsg
-    toast.error(errMsg)
+    notify.error('Gagal Memulihkan', errMsg)
   } finally {
     restoreLoading.value = false
   }

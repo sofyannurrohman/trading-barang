@@ -625,7 +625,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
 import api from '@/plugins/axios'
-import { toast } from 'vue-sonner'
+import { notify } from '@/lib/notify'
 import { ImagePlus, ImageOff, Camera, X, Check, RotateCcw } from '@lucide/vue'
 
 // ─── Config ───────────────────────────────────────────────────────────────────
@@ -874,7 +874,7 @@ const submitForm = async () => {
         name: form.value.name,
         category: form.value.category,
         standard_price: Number(form.value.standard_price) || 0
-      }, { skipToast: true } as any)
+      })
       productId = form.value.ID
     } else {
       const res = await api.post('/api/products', {
@@ -882,7 +882,7 @@ const submitForm = async () => {
         name: form.value.name,
         category: form.value.category,
         standard_price: Number(form.value.standard_price) || 0
-      }, { skipToast: true } as any)
+      })
       productId = res.data.ID
     }
 
@@ -891,9 +891,8 @@ const submitForm = async () => {
       const formData = new FormData()
       formData.append('image', selectedFile.value)
       await api.post(`/api/products/${productId}/image`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-        skipToast: true
-      } as any)
+        headers: { 'Content-Type': 'multipart/form-data' }
+      })
     }
 
     // Tutup modal terlebih dahulu
@@ -903,15 +902,18 @@ const submitForm = async () => {
     previewUrl.value = ''
     selectedFile.value = null
 
-    // Tampilkan toast setelah modal tertutup agar tidak terhalangi backdrop
-    toast.success(wasEditing ? 'Produk berhasil diperbarui' : 'Produk berhasil ditambahkan')
+    // Tampilkan notifikasi toast
+    notify.success(
+      wasEditing ? 'Produk berhasil diperbarui' : 'Produk berhasil ditambahkan',
+      `Data produk "${form.value.name}" telah disimpan.`
+    )
 
     await fetchProducts()
   } catch (error: any) {
     console.error('Failed to save product', error)
     const errMsg = error.response?.data?.error ?? 'Gagal menyimpan produk. Pastikan SKU unik.'
     formError.value = errMsg
-    toast.error(errMsg)
+    notify.error('Gagal Menyimpan Produk', errMsg)
   } finally {
     submitLoading.value = false
   }
@@ -928,18 +930,18 @@ const submitDelete = async () => {
   if (!deletingProduct.value?.ID) return
   deleteLoading.value = true
   deleteError.value = ''
+  const prodName = deletingProduct.value.name
   try {
-    await api.delete(`/api/products/${deletingProduct.value.ID}`, { skipToast: true } as any)
+    await api.delete(`/api/products/${deletingProduct.value.ID}`)
     // Tutup modal terlebih dahulu
     isDeleteModalOpen.value = false
-    // Tampilkan toast setelah modal tertutup agar tidak terhalangi backdrop
-    toast.success('Produk berhasil dipindahkan ke kotak sampah')
+    notify.success('Produk Dihapus', `Produk "${prodName}" berhasil dipindahkan ke kotak sampah`)
     await fetchProducts()
   } catch (error: any) {
     console.error('Failed to delete product', error)
     const errMsg = error.response?.data?.error ?? 'Gagal menghapus produk.'
     deleteError.value = errMsg
-    toast.error(errMsg)
+    notify.error('Gagal Menghapus', errMsg)
   } finally {
     deleteLoading.value = false
   }
@@ -958,15 +960,15 @@ const submitRestore = async () => {
   restoreError.value = ''
   const prodName = restoringProduct.value.name
   try {
-    await api.post(`/api/products/${restoringProduct.value.ID}/restore`, {}, { skipToast: true } as any)
+    await api.post(`/api/products/${restoringProduct.value.ID}/restore`, {})
     isRestoreModalOpen.value = false
-    toast.success(`Produk "${prodName}" berhasil dipulihkan`)
+    notify.success('Produk Dipulihkan', `Produk "${prodName}" berhasil dipulihkan ke daftar aktif`)
     await fetchProducts()
   } catch (error: any) {
     console.error('Failed to restore product', error)
     const errMsg = error.response?.data?.error ?? 'Gagal memulihkan produk.'
     restoreError.value = errMsg
-    toast.error(errMsg)
+    notify.error('Gagal Memulihkan', errMsg)
   } finally {
     restoreLoading.value = false
   }

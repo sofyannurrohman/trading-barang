@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
-import { toast } from 'vue-sonner'
+import { notify } from '@/lib/notify'
 
 const routes = [
   {
@@ -61,7 +61,7 @@ router.beforeEach((to, _from, next) => {
   if (to.meta.requiresAuth && !isAuthenticated) {
     next({ name: 'Login' })
   } else if (to.meta.role && user?.role !== to.meta.role) {
-    toast.error("Anda tidak memiliki akses ke halaman ini. Silakan login kembali.")
+    notify.error("Akses Ditolak", "Anda tidak memiliki akses ke halaman ini. Silakan login kembali.")
     authStore.logout()
     next({ name: 'Login' })
   } else {

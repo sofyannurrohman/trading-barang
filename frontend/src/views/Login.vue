@@ -207,7 +207,7 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import api from '../plugins/axios'
-import { toast } from 'vue-sonner'
+import { notify } from '@/lib/notify'
 import {
   LayoutDashboard,
   Sparkles,
@@ -254,10 +254,10 @@ const handleLogin = async () => {
       email: identifier.value,
       username: identifier.value,
       password: password.value
-    }, { skipToast: true } as any)
+    })
 
     authStore.login(response.data.token, response.data.user)
-    toast.success(`Selamat datang kembali, ${response.data.user?.username || 'Admin'}!`)
+    notify.success(`Selamat datang kembali, ${response.data.user?.username || 'Admin'}!`, 'Anda berhasil masuk ke sistem.')
     router.push('/dashboard')
   } catch (err: any) {
     error.value = err.response?.data?.error || 'Gagal masuk. Periksa kembali email/username dan password Anda.'

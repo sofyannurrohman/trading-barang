@@ -1,12 +1,25 @@
 import axios from 'axios'
 import { useAuthStore } from '../stores/auth'
-import { toast } from 'vue-sonner'
+import { notify } from '../lib/notify'
 import router from '../router'
+
+declare module 'axios' {
+  export interface AxiosRequestConfig {
+    /** Jika true, axios interceptor tidak akan menampilkan toast error otomatis untuk request ini */
+    silent?: boolean
+    /** Jika diisi, axios interceptor otomatis menampilkan toast sukses dengan teks ini */
+    successMessage?: string
+    /** @deprecated Diganti dengan silent / penanganan eksplisit */
+    skipToast?: boolean
+  }
+}
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080',
+  timeout: 30000,
 })
 
+// Request Interceptor
 api.interceptors.request.use(
   (config) => {
     const authStore = useAuthStore()
@@ -21,33 +34,44 @@ api.interceptors.request.use(
   }
 )
 
+// Response Interceptor
 api.interceptors.response.use(
   (response) => {
-    // Skip toast jika request sudah menangani toast sendiri (skipToast flag)
-    if ((response.config as any).skipToast) return response
-    const method = response.config.method?.toLowerCase()
-    if (method && ['post', 'put', 'delete'].includes(method)) {
-      if (!response.config.url?.includes('/login') && !response.config.url?.includes('/register')) {
-        const msg = response.data?.message || 'Operasi berhasil disimpan'
-        toast.success(msg)
-      }
+    // Tampilkan custom success toast jika didefinisikan di config request
+    if (response.config.successMessage) {
+      notify.success(response.config.successMessage)
     }
     return response
   },
   (error) => {
-    const msg = error.response?.data?.error || error.message || 'Terjadi kesalahan pada sistem'
-    // Skip toast jika request sudah menangani toast sendiri (skipToast flag)
-    if (!(error.config as any)?.skipToast) {
-      toast.error(msg)
-    }
+    const isSilent = error.config?.silent || error.config?.skipToast
+    const status = error.response?.status
 
-    if (error.response?.status === 401) {
+    // Tangani 401 Unauthorized (Sesi habis / token invalid)
+    if (status === 401) {
       const authStore = useAuthStore()
       authStore.logout()
       if (router.currentRoute.value.path !== '/login') {
+        notify.warning('Sesi Anda telah berakhir', 'Silakan masuk kembali untuk melanjutkan.')
         router.push('/login')
       }
+      return Promise.reject(error)
     }
+
+    // Tangani 403 Forbidden (Tidak ada hak akses)
+    if (status === 403 && !isSilent) {
+      notify.error('Akses Ditolak', 'Anda tidak memiliki hak akses untuk tindakan ini.')
+      return Promise.reject(error)
+    }
+
+    // Tangani Network Error (Server down / tidak terhubung)
+    if (!error.response && !isSilent) {
+      notify.error('Koneksi Gagal', 'Tidak dapat terhubung ke server. Periksa jaringan Anda.')
+      return Promise.reject(error)
+    }
+
+    // Catatan: Error 400, 422, 500 diteruskan ke Promise.reject agar komponen pemanggil
+    // dapat menangani feedback kontekstual secara spesifik via notify.error(err).
     return Promise.reject(error)
   }
 )

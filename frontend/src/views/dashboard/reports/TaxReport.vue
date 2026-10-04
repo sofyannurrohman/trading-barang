@@ -65,7 +65,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import api from '@/plugins/axios'
-import { toast } from 'vue-sonner'
+import { notify } from '@/lib/notify'
 
 interface TaxRow {
   invoice_number: string
@@ -98,7 +98,7 @@ const fetchReport = async () => {
 
 const exportCSV = () => {
   if (reports.value.length === 0) {
-    toast.error('Tidak ada data untuk diekspor')
+    notify.warning('Data Kosong', 'Tidak ada data laporan pajak untuk diekspor.')
     return
   }
   let csvContent = 'data:text/csv;charset=utf-8,No. Faktur,Tanggal,Klien,NPWP/NIK,DPP,PPN\n'
@@ -112,7 +112,7 @@ const exportCSV = () => {
   document.body.appendChild(link)
   link.click()
   document.body.removeChild(link)
-  toast.success('Laporan berhasil diekspor')
+  notify.success('Ekspor Berhasil', 'Laporan PPN telah diunduh dalam format CSV.')
 }
 
 onMounted(() => {

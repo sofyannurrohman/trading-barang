@@ -342,7 +342,7 @@
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue'
 import api from '@/plugins/axios'
-import { toast } from 'vue-sonner'
+import { notify } from '@/lib/notify'
 import { RotateCcw } from '@lucide/vue'
 
 interface Partner {
@@ -420,26 +420,30 @@ const openDialog = (partner?: Partner) => {
 const savePartner = async () => {
   // Validasi: minimal salah satu dari NPWP atau NIK harus diisi
   if (!form.value.npwp && !form.value.nik) {
-    toast.warning('Harap isi minimal salah satu dari NPWP atau NIK untuk kebutuhan pajak.')
+    notify.warning('Data Pajak Kurang Lengkap', 'Harap isi minimal salah satu dari NPWP atau NIK untuk kebutuhan faktur pajak.')
     return
   }
 
   saveLoading.value = true
   const wasEditing = isEditing.value
+  const partnerName = form.value.name
   try {
     if (isEditing.value && form.value.ID) {
-      await api.put(`/api/partners/${form.value.ID}`, form.value, { skipToast: true } as any)
+      await api.put(`/api/partners/${form.value.ID}`, form.value)
     } else {
-      await api.post('/api/partners', form.value, { skipToast: true } as any)
+      await api.post('/api/partners', form.value)
     }
-    // Tutup modal dulu, baru tampilkan toast agar tidak terhalangi backdrop
+    // Tutup modal
     isDialogOpen.value = false
-    toast.success(wasEditing ? 'Mitra berhasil diperbarui' : 'Mitra berhasil ditambahkan')
+    notify.success(
+      wasEditing ? 'Mitra berhasil diperbarui' : 'Mitra berhasil ditambahkan',
+      `Data mitra "${partnerName}" telah tersimpan.`
+    )
     await fetchPartners()
   } catch (error: any) {
     console.error('Failed to save partner', error)
     const errMsg = error.response?.data?.error ?? 'Gagal menyimpan data mitra.'
-    toast.error(errMsg)
+    notify.error('Gagal Menyimpan', errMsg)
   } finally {
     saveLoading.value = false
   }
@@ -455,15 +459,15 @@ const openDeleteConfirm = (partner: Partner) => {
 const submitDelete = async () => {
   if (!deletingPartnerId.value) return
   deleteLoading.value = true
+  const pName = deletingPartnerName.value
   try {
-    await api.delete(`/api/partners/${deletingPartnerId.value}`, { skipToast: true } as any)
-    // Tutup modal dulu, baru tampilkan toast agar tidak terhalangi backdrop
+    await api.delete(`/api/partners/${deletingPartnerId.value}`)
     isDeleteConfirmOpen.value = false
-    toast.success('Mitra berhasil dipindahkan ke kotak sampah')
+    notify.success('Mitra Dihapus', `Mitra "${pName}" berhasil dipindahkan ke kotak sampah`)
     await fetchPartners()
   } catch (error: any) {
     console.error('Failed to delete partner', error)
-    toast.error(error.response?.data?.error ?? 'Gagal menghapus mitra.')
+    notify.error('Gagal Menghapus', error.response?.data?.error ?? 'Gagal menghapus mitra.')
   } finally {
     deleteLoading.value = false
   }
@@ -481,13 +485,13 @@ const submitRestore = async () => {
   restoreLoading.value = true
   const pName = restoringPartnerName.value
   try {
-    await api.post(`/api/partners/${restoringPartnerId.value}/restore`, {}, { skipToast: true } as any)
+    await api.post(`/api/partners/${restoringPartnerId.value}/restore`, {})
     isRestoreConfirmOpen.value = false
-    toast.success(`Mitra "${pName}" berhasil dipulihkan`)
+    notify.success('Mitra Dipulihkan', `Mitra "${pName}" berhasil dipulihkan`)
     await fetchPartners()
   } catch (error: any) {
     console.error('Failed to restore partner', error)
-    toast.error(error.response?.data?.error ?? 'Gagal memulihkan data mitra.')
+    notify.error('Gagal Memulihkan', error.response?.data?.error ?? 'Gagal memulihkan data mitra.')
   } finally {
     restoreLoading.value = false
   }

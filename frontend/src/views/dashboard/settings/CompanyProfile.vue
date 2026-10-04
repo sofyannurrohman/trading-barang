@@ -128,7 +128,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import api from '@/plugins/axios'
-import { toast } from 'vue-sonner'
+import { notify } from '@/lib/notify'
 
 const loading = ref(false)
 const successMsg = ref('')
@@ -170,12 +170,12 @@ const saveProfile = async () => {
   try {
     await api.put('/api/settings/company', form.value)
     successMsg.value = 'Profil perusahaan dan template faktur berhasil diperbarui!'
-    toast.success('Profil perusahaan berhasil diperbarui')
+    notify.success('Profil Perusahaan Disimpan', 'Data profil dan template faktur berhasil diperbarui.')
     setTimeout(() => { successMsg.value = '' }, 3000)
   } catch (error: any) {
     console.error('Failed to save profile', error)
     errorMsg.value = error.response?.data?.error || 'Gagal menyimpan profil.'
-    toast.error(errorMsg.value)
+    notify.error('Gagal Menyimpan Profil', errorMsg.value)
   } finally {
     loading.value = false
   }

@@ -207,7 +207,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import api from '@/plugins/axios'
-import { toast } from 'vue-sonner'
+import { notify } from '@/lib/notify'
 import { Pencil, Trash2, RotateCcw } from '@lucide/vue'
 
 interface User {
@@ -258,7 +258,7 @@ const fetchUsers = async () => {
     const res = await api.get('/api/settings/users')
     users.value = res.data || []
   } catch (error: any) {
-    toast.error(error.response?.data?.error || 'Gagal memuat data pengguna.')
+    notify.error('Gagal Memuat Pengguna', error.response?.data?.error || 'Gagal memuat data pengguna.')
   } finally {
     loading.value = false
   }
@@ -299,17 +299,17 @@ const submitForm = async () => {
     }
 
     if (isEditing.value) {
-      await api.put(`/api/settings/users/${form.value.id}`, payload, { skipToast: true } as any)
+      await api.put(`/api/settings/users/${form.value.id}`, payload)
       closeModal()
-      toast.success('Pengguna berhasil diperbarui')
+      notify.success('Pengguna Diperbarui', `Akun ${form.value.username} berhasil diperbarui.`)
     } else {
-      await api.post('/api/settings/users', payload, { skipToast: true } as any)
+      await api.post('/api/settings/users', payload)
       closeModal()
-      toast.success('Pengguna berhasil ditambahkan')
+      notify.success('Pengguna Ditambahkan', `Akun ${form.value.username} berhasil dibuat.`)
     }
     await fetchUsers()
   } catch (error: any) {
-    toast.error(error.response?.data?.error || 'Gagal menyimpan pengguna.')
+    notify.error('Gagal Menyimpan', error.response?.data?.error || 'Gagal menyimpan pengguna.')
   } finally {
     submitLoading.value = false
   }
@@ -325,12 +325,12 @@ const submitDelete = async () => {
   deleteLoading.value = true
   const deletedUsername = deletingUser.value.username
   try {
-    await api.delete(`/api/settings/users/${deletingUser.value.ID}`, { skipToast: true } as any)
+    await api.delete(`/api/settings/users/${deletingUser.value.ID}`)
     isDeleteModalOpen.value = false
-    toast.success(`Pengguna ${deletedUsername} berhasil dipindahkan ke kotak sampah`)
+    notify.success('Pengguna Dihapus', `Pengguna ${deletedUsername} berhasil dipindahkan ke kotak sampah`)
     await fetchUsers()
   } catch (error: any) {
-    toast.error(error.response?.data?.error || 'Gagal menghapus pengguna.')
+    notify.error('Gagal Menghapus', error.response?.data?.error || 'Gagal menghapus pengguna.')
   } finally {
     deleteLoading.value = false
   }
@@ -346,12 +346,12 @@ const submitRestore = async () => {
   restoreLoading.value = true
   const uName = restoringUser.value.username
   try {
-    await api.post(`/api/settings/users/${restoringUser.value.ID}/restore`, {}, { skipToast: true } as any)
+    await api.post(`/api/settings/users/${restoringUser.value.ID}/restore`, {})
     isRestoreModalOpen.value = false
-    toast.success(`Pengguna ${uName} berhasil dipulihkan`)
+    notify.success('Pengguna Dipulihkan', `Pengguna ${uName} berhasil dipulihkan`)
     await fetchUsers()
   } catch (error: any) {
-    toast.error(error.response?.data?.error || 'Gagal memulihkan pengguna.')
+    notify.error('Gagal Memulihkan', error.response?.data?.error || 'Gagal memulihkan pengguna.')
   } finally {
     restoreLoading.value = false
   }

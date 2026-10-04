@@ -113,7 +113,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import api from '@/plugins/axios'
-import { toast } from 'vue-sonner'
+import { notify } from '@/lib/notify'
 import { Printer, Pencil } from '@lucide/vue'
 
 interface Invoice {
@@ -173,13 +173,13 @@ const submitEdit = async () => {
       status: editForm.value.status,
       shipping_cost: Number(editForm.value.shipping_cost) || 0,
       discount: Number(editForm.value.discount) || 0,
-    }, { skipToast: true } as any)
+    })
     
     isEditModalOpen.value = false
-    toast.success(`Invoice ${invoiceNumber} berhasil diperbarui`)
+    notify.success('Invoice Diperbarui', `Invoice ${invoiceNumber} berhasil diperbarui`)
     await fetchInvoices()
   } catch (error: any) {
-    toast.error(error.response?.data?.error ?? 'Gagal memperbarui invoice.')
+    notify.error('Gagal Memperbarui', error.response?.data?.error ?? 'Gagal memperbarui invoice.')
   } finally {
     editLoading.value = false
   }

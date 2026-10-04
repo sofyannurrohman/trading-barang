@@ -356,7 +356,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import api from '@/plugins/axios'
-import { toast } from 'vue-sonner'
+import { notify } from '@/lib/notify'
 
 // ─── Interfaces ──────────────────────────────────────────────────────────────
 interface Product {
@@ -482,15 +482,17 @@ const submitInbound = async () => {
       quantity: qty,
       unit_price: inboundForm.value.unit_price,
       reference: inboundForm.value.reference
-    }, { skipToast: true } as any)
-    // Tutup modal dulu, baru toast agar tidak terhalangi backdrop
+    })
     closeModal()
-    toast.success(`Inbound berhasil — ${qty} unit ${productName} ditambahkan ke stok`)
+    notify.success(
+      'Inbound Berhasil',
+      `${qty} unit ${productName} berhasil ditambahkan ke stok gudang.`
+    )
     await fetchProducts()
   } catch (error: any) {
     const errMsg = error.response?.data?.error || 'Gagal menyimpan Inbound.'
     actionError.value = errMsg
-    toast.error(errMsg)
+    notify.error('Gagal Inbound', errMsg)
   } finally {
     actionLoading.value = false
   }
@@ -514,16 +516,18 @@ const submitOpname = async () => {
       product_id: selectedProduct.value.ID,
       quantity: diffValue, // Kirim selisih, bukan physical_stock
       reference: opnameForm.value.reference
-    }, { skipToast: true } as any)
-    // Tutup modal dulu, baru toast agar tidak terhalangi backdrop
+    })
     closeModal()
     const diffLabel = diffValue > 0 ? `+${diffValue}` : `${diffValue}`
-    toast.success(`Opname berhasil — Stok ${productName} disesuaikan (${diffLabel} unit)`)
+    notify.success(
+      'Opname Berhasil Disimpan',
+      `Stok ${productName} disesuaikan (${diffLabel} unit)`
+    )
     await fetchProducts()
   } catch (error: any) {
     const errMsg = error.response?.data?.error || 'Gagal menyimpan Opname.'
     actionError.value = errMsg
-    toast.error(errMsg)
+    notify.error('Gagal Opname', errMsg)
   } finally {
     actionLoading.value = false
   }

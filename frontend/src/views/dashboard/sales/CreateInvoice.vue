@@ -141,7 +141,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '@/plugins/axios'
-import { toast } from 'vue-sonner'
+import { notify } from '@/lib/notify'
 import { Trash2 } from '@lucide/vue'
 
 const router = useRouter()
@@ -194,11 +194,11 @@ const onProductSelect = () => {
 
 const addItem = () => {
   if (!itemForm.value.product_id) {
-    toast.error('Pilih produk terlebih dahulu')
+    notify.warning('Pilih Produk', 'Silakan pilih produk terlebih dahulu')
     return
   }
   if (itemForm.value.quantity <= 0) {
-    toast.error('Jumlah kuantiti minimal 1')
+    notify.warning('Kuantiti Tidak Valid', 'Jumlah kuantiti minimal 1')
     return
   }
 
@@ -206,7 +206,7 @@ const addItem = () => {
   if (!selected) return
 
   if (itemForm.value.quantity > selected.current_stock) {
-    toast.error(`Stok tidak mencukupi. Sisa stok: ${selected.current_stock}`)
+    notify.error('Stok Tidak Cukup', `Sisa stok: ${selected.current_stock}`)
     return
   }
 
@@ -214,7 +214,7 @@ const addItem = () => {
   if (existingIndex > -1) {
     const newQty = cart.value[existingIndex].quantity + Number(itemForm.value.quantity)
     if (newQty > selected.current_stock) {
-      toast.error(`Total kuantiti di keranjang (${newQty}) melebihi stok (${selected.current_stock})`)
+      notify.error('Melebihi Stok', `Total kuantiti di keranjang (${newQty}) melebihi stok (${selected.current_stock})`)
       return
     }
     cart.value[existingIndex].quantity = newQty
@@ -250,6 +250,7 @@ const grandTotal = computed(() => {
 const submitInvoice = async () => {
   if (cart.value.length === 0) {
     errorMsg.value = 'Keranjang belanja masih kosong'
+    notify.warning('Keranjang Kosong', 'Tambahkan minimal 1 produk ke keranjang.')
     return
   }
 
@@ -267,16 +268,12 @@ const submitInvoice = async () => {
       }))
     }
 
-    const res = await api.post('/api/sales/invoices', payload, { skipToast: true } as any)
-    toast.success('Faktur berhasil dibuat')
-    if (res.data?.id || res.data?.ID) {
-      router.push('/dashboard/sales/list')
-    } else {
-      router.push('/dashboard/sales/list')
-    }
+    await api.post('/api/sales/invoices', payload)
+    notify.success('Faktur Berhasil', 'Faktur penjualan berhasil dibuat.')
+    router.push('/dashboard/sales/management')
   } catch (err: any) {
     errorMsg.value = err.response?.data?.error || 'Gagal membuat faktur'
-    toast.error(errorMsg.value)
+    notify.error('Gagal Membuat Faktur', errorMsg.value)
   } finally {
     loading.value = false
   }

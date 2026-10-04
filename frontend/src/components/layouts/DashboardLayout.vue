@@ -228,6 +228,9 @@
             <span>{{ currentDateStr }}</span>
           </div>
 
+          <!-- System Notifications Dropdown -->
+          <NotificationDropdown />
+
           <!-- User Profile Badge & Quick Menu -->
           <div class="flex items-center gap-2.5 pl-2 sm:border-l sm:border-slate-200">
             <div class="flex items-center gap-2">
@@ -269,6 +272,7 @@
 import { ref, reactive, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import NotificationDropdown from '@/components/ui/NotificationDropdown.vue'
 import {
   LayoutDashboard,
   Database,
